@@ -1,6 +1,7 @@
 # money-football
 AI-based Korea national football lineup recommendation project
 
+```text
 money-football/
 │
 ├─ app.py
@@ -22,6 +23,7 @@ money-football/
 ├─ prompts/
 │
 └─ src/
+```
 
 
 ## 폴더 및 파일 설명
