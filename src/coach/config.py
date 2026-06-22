@@ -4,7 +4,6 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parents[2]
 
 PLAYERS_FILE = BASE_DIR / "data" / "sample_players.csv"
-FORMATIONS_FILE = BASE_DIR / "data" / "formations.json"
 
 COLUMN_MAP = {
     "player_id": "player_id",
