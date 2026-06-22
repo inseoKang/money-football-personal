@@ -35,6 +35,20 @@ Streamlit 앱의 메인 실행 파일입니다.
 프로젝트 실행에 필요한 Python 패키지 목록을 저장합니다.
 예: streamlit, pandas, numpy, scikit-learn, matplotlib 등
 
+현재 기본 실행에 필요한 패키지는 다음과 같습니다.
+
+```text
+streamlit
+pandas
+numpy
+```
+
+패키지 설치 명령어:
+
+```powershell
+pip install -r requirements.txt
+```
+
 ### README.md
 프로젝트 소개, 폴더 구조, 실행 방법, 주요 기능 등을 정리하는 문서입니다.
 
