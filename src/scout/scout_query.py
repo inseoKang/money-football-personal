@@ -70,6 +70,93 @@ METRIC_FOCUS_SCORE_COLUMNS = {
     "balanced": ["overall_role_score"],
 }
 
+SIMILARITY_FOCUS_OPTIONS = [
+    {
+        "value": "overall",
+        "label": "전체 스타일 유사",
+        "description": "역할 적합도, 공격, 찬스 창출, 압박, 수비, 연봉 효율을 함께 비교합니다.",
+    },
+    {
+        "value": "role",
+        "label": "역할 적합도 유사",
+        "description": "사전에 정의한 역할별 적합도 점수 분포를 비교합니다.",
+    },
+    {
+        "value": "attack",
+        "label": "공격 성향 유사",
+        "description": "공격, 슈팅, 찬스 창출 점수를 중심으로 비교합니다.",
+    },
+    {
+        "value": "passing",
+        "label": "창의성/전개 성향 유사",
+        "description": "찬스 창출, 창의 패스, 전진 패스, 빌드업 proxy 점수를 기준으로 비교합니다.",
+    },
+    {
+        "value": "defense",
+        "label": "수비 성향 유사",
+        "description": "수비 행동, 볼 탈취, 공중볼 수비 점수를 중심으로 비교합니다.",
+    },
+    {
+        "value": "physical",
+        "label": "압박/활동량 성향 유사",
+        "description": "압박, 공중볼 수비, 출전 시간 percentile을 함께 비교합니다.",
+    },
+    {
+        "value": "value",
+        "label": "가성비 대체 후보",
+        "description": "기량 점수와 연봉 효율, 연봉 가치 점수를 함께 고려합니다.",
+    },
+]
+
+POSITION_SCOPE_OPTIONS = [
+    {
+        "value": "same_position",
+        "label": "같은 포지션",
+        "description": "기준 선수와 같은 포지션 그룹 안에서만 찾습니다.",
+    },
+    {
+        "value": "adjacent_position",
+        "label": "인접 포지션 포함",
+        "description": "전술적으로 가까운 포지션 그룹까지 확장해서 찾습니다.",
+    },
+    {
+        "value": "all",
+        "label": "전체 포지션",
+        "description": "포지션 제한 없이 유사한 점수 분포를 가진 선수를 찾습니다.",
+    },
+]
+
+SIMILARITY_FEATURE_COLUMNS = {
+    "overall": [
+        "overall_role_score",
+        "attack_score",
+        "shooting_score",
+        "chance_creation_score",
+        "pressing_score",
+        "defensive_action_score",
+        "salary_efficiency_score",
+    ],
+    "role": list(ROLE_SCORE_COLUMNS.values()),
+    "attack": ["attack_score", "shooting_score", "chance_creation_score"],
+    "passing": ["chance_creation_score", "creative_pass_score", "progressive_pass_score", "build_up_score"],
+    "defense": ["defensive_action_score", "ball_winning_score", "aerial_defense_score"],
+    "physical": ["pressing_score", "aerial_defense_score", "minutes_percentile_by_position"],
+    "value": [
+        "overall_role_score",
+        "salary_efficiency_score",
+        "salary_value_score",
+        "performance_percentile_by_position",
+        "salary_percentile_by_position",
+    ],
+}
+
+ADJACENT_POSITION_GROUPS = {
+    "GK": {"GK"},
+    "DF": {"DF", "MF"},
+    "MF": {"DF", "MF", "FW"},
+    "FW": {"MF", "FW"},
+}
+
 
 def get_role_options(position_group: str | None = None) -> list[dict[str, str]]:
     """Return role options allowed for the selected position group."""
@@ -83,6 +170,16 @@ def get_tactical_need_options(role_key: str | None = None) -> list[dict[str, str
     role = role_key or "Creative Midfielder"
     options = TACTICAL_NEED_OPTIONS.get(role, [])
     return [{"value": option, "label": option} for option in options]
+
+
+def get_similarity_focus_options() -> list[dict[str, str]]:
+    """Return similarity focus options for Button 3."""
+    return [dict(option) for option in SIMILARITY_FOCUS_OPTIONS]
+
+
+def get_position_scope_options() -> list[dict[str, str]]:
+    """Return position scope options for Button 3."""
+    return [dict(option) for option in POSITION_SCOPE_OPTIONS]
 
 
 def load_scout_player_view(path: str | Path = DEFAULT_VIEW_PATH) -> list[dict[str, str]]:
@@ -316,6 +413,125 @@ def find_salary_value_players(
     return results[:top_n]
 
 
+def build_player_feature_vector(player: dict[str, str], focus: str) -> dict[str, float]:
+    """Build the feature vector used by Button 3 similarity search."""
+    columns = SIMILARITY_FEATURE_COLUMNS.get(focus, SIMILARITY_FEATURE_COLUMNS["overall"])
+    vector: dict[str, float] = {}
+    for column in columns:
+        value = parse_float(player.get(column))
+        vector[column] = 50.0 if value is None else max(0.0, min(value, 100.0))
+    return vector
+
+
+def calculate_similarity_score(
+    base_vector: dict[str, float],
+    candidate_vector: dict[str, float],
+    focus: str,
+) -> float:
+    """Calculate a 0-100 similarity score with weighted distance."""
+    columns = SIMILARITY_FEATURE_COLUMNS.get(focus, SIMILARITY_FEATURE_COLUMNS["overall"])
+    if not columns:
+        return 0.0
+
+    total_weight = 0.0
+    weighted_distance = 0.0
+    for column in columns:
+        weight = 1.0
+        if focus == "role" and column.startswith("role_fit_"):
+            weight = 1.15
+        elif focus == "value" and column in {"salary_efficiency_score", "salary_value_score"}:
+            weight = 1.25
+        elif focus == "passing" and column in {"chance_creation_score", "creative_pass_score"}:
+            weight = 1.2
+
+        weighted_distance += abs(base_vector.get(column, 50.0) - candidate_vector.get(column, 50.0)) * weight
+        total_weight += weight
+
+    average_distance = weighted_distance / total_weight if total_weight else 100.0
+    return round(max(0.0, min(100.0, 100.0 - average_distance)), 2)
+
+
+def find_similar_players(
+    filters: dict,
+    players: list[dict[str, str]] | None = None,
+    view_path: str | Path = DEFAULT_VIEW_PATH,
+) -> list[dict[str, object]]:
+    """Return ranked Button 3 similar-player candidates."""
+    rows = players if players is not None else load_scout_player_view(view_path)
+    base_player_id = str(filters.get("base_player_id") or "")
+    focus = str(filters.get("similarity_focus") or "overall")
+    if focus not in SIMILARITY_FEATURE_COLUMNS:
+        focus = "overall"
+
+    position_scope = str(filters.get("position_scope") or "same_position")
+    league = str(filters.get("league") or "ALL")
+    top_n = int(filters.get("top_n") or 20)
+    age_max = parse_float(filters.get("age_max"))
+    max_salary = parse_float(filters.get("max_salary"))
+    min_minutes = parse_float(filters.get("min_minutes"))
+    if min_minutes is None:
+        min_minutes = 700.0
+
+    base_player = next((row for row in rows if row.get("player_id") == base_player_id), None)
+    if base_player is None or base_player.get("score_available") != "true":
+        return []
+
+    base_vector = build_player_feature_vector(base_player, focus)
+    allowed_positions = _allowed_position_groups(base_player.get("position_group", ""), position_scope)
+    results: list[dict[str, object]] = []
+
+    for row in rows:
+        if row.get("player_id") == base_player_id:
+            continue
+        if row.get("score_available") != "true":
+            continue
+        if allowed_positions is not None and row.get("position_group") not in allowed_positions:
+            continue
+        if league != "ALL" and row.get("league") != league:
+            continue
+        if age_max is not None and not _matches_number_range(row.get("age"), None, age_max):
+            continue
+        if min_minutes is not None and not _matches_number_range(row.get("minutes"), min_minutes, None):
+            continue
+        if max_salary is not None:
+            if row.get("salary_available") != "true":
+                continue
+            if not _matches_number_range(row.get("salary_annual_gross_eur"), None, max_salary):
+                continue
+
+        candidate_vector = build_player_feature_vector(row, focus)
+        similarity_score = calculate_similarity_score(base_vector, candidate_vector, focus)
+        result = {
+            "player_id": row.get("player_id", ""),
+            "player_name": row.get("player_name", ""),
+            "team": row.get("team", ""),
+            "league": row.get("league", ""),
+            "position_group": row.get("position_group", ""),
+            "age": parse_float(row.get("age")),
+            "minutes": parse_float(row.get("minutes")),
+            "salary_annual_gross_eur": parse_float(row.get("salary_annual_gross_eur")),
+            "similarity_score": similarity_score,
+            "similarity_label": _similarity_label(similarity_score),
+            "similarity_focus": focus,
+            "base_player_id": base_player.get("player_id", ""),
+            "base_player_name": base_player.get("player_name", ""),
+            "salary_value_label": row.get("salary_value_label", "평가 불가"),
+            "salary_value_score": parse_float(row.get("salary_value_score")),
+            "data_quality_note": row.get("data_quality_note", ""),
+            "similarity_reason_summary": _build_similarity_reason(base_player, row, focus, similarity_score),
+        }
+        results.append(result)
+
+    results.sort(
+        key=lambda row: (
+            parse_float(row.get("similarity_score")) or 0.0,
+            parse_float(row.get("minutes")) or 0.0,
+        ),
+        reverse=True,
+    )
+    return results[:top_n]
+
+
 def _metric_focus_score(row: dict[str, str], metric_focus: str) -> float:
     columns = METRIC_FOCUS_SCORE_COLUMNS.get(metric_focus, METRIC_FOCUS_SCORE_COLUMNS["overall"])
     values = [parse_float(row.get(column)) for column in columns]
@@ -339,3 +555,40 @@ def _build_value_warnings(row: dict[str, str], min_minutes: float | None) -> lis
     if row.get("prediction_model_version") == "baseline_percentile_v1":
         warnings.append("baseline_prediction_until_ml_model")
     return warnings
+
+
+def _allowed_position_groups(base_position_group: str, position_scope: str) -> set[str] | None:
+    base_group = str(base_position_group or "").upper()
+    if position_scope == "all":
+        return None
+    if position_scope == "adjacent_position":
+        return ADJACENT_POSITION_GROUPS.get(base_group, {base_group})
+    return {base_group}
+
+
+def _similarity_label(score: float) -> str:
+    if score >= 85:
+        return "매우 유사"
+    if score >= 70:
+        return "유사"
+    if score >= 55:
+        return "부분 유사"
+    return "낮은 유사도"
+
+
+def _build_similarity_reason(base_player: dict[str, str], candidate: dict[str, str], focus: str, score: float) -> str:
+    focus_label = next(
+        (option["label"] for option in SIMILARITY_FOCUS_OPTIONS if option["value"] == focus),
+        "전체 스타일 유사",
+    )
+    reason = f"{focus_label} 기준으로 {base_player.get('player_name', '기준 선수')}와 {score:.1f}점 유사도를 보입니다."
+
+    base_salary = parse_float(base_player.get("salary_annual_gross_eur"))
+    candidate_salary = parse_float(candidate.get("salary_annual_gross_eur"))
+    if base_salary and candidate_salary and candidate_salary < base_salary:
+        reason += " 기준 선수보다 현재 연봉이 낮아 대체 후보 관점에서도 확인할 가치가 있습니다."
+
+    if focus == "passing" or "passing_proxy_limited" in candidate.get("data_quality_note", ""):
+        reason += " 패스/빌드업 관련 점수는 현재 proxy 기반이므로 정밀 패스 데이터 보강 후 재검증이 필요합니다."
+
+    return reason
