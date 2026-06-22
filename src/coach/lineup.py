@@ -1,7 +1,7 @@
 import pandas as pd
 
 from src.coach.config import COLUMN_MAP, PLAYERS_FILE
-from src.coach.formation import get_formation_slots
+from src.coach.formation_run import get_formation_slots
 from src.coach.formations import ROLE_ALIASES
 from src.coach.scoring import calculate_player_score
 from src.coach.validators import validate_player_columns
