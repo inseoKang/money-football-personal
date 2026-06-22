@@ -54,6 +54,68 @@ PRIORITY_METRIC_SCORE_COLUMNS = {
     "피지컬": "aerial_defense_score",
 }
 
+ADVANCED_SCORE_FILTER_COLUMNS = {
+    "overall_role_score_min": "overall_role_score",
+    "attack_score_min": "attack_score",
+    "shooting_score_min": "shooting_score",
+    "chance_creation_score_min": "chance_creation_score",
+    "progressive_pass_score_min": "progressive_pass_score",
+    "creative_pass_score_min": "creative_pass_score",
+    "pressing_score_min": "pressing_score",
+    "defensive_action_score_min": "defensive_action_score",
+    "ball_winning_score_min": "ball_winning_score",
+    "build_up_score_min": "build_up_score",
+    "aerial_defense_score_min": "aerial_defense_score",
+    "goalkeeper_score_min": "goalkeeper_score",
+    "salary_value_score_min": "salary_value_score",
+    "salary_efficiency_score_min": "salary_efficiency_score",
+    "role_fit_finisher_min": "role_fit_finisher",
+    "role_fit_pressing_forward_min": "role_fit_pressing_forward",
+    "role_fit_creative_midfielder_min": "role_fit_creative_midfielder",
+    "role_fit_progressive_passer_min": "role_fit_progressive_passer",
+    "role_fit_ball_winning_midfielder_min": "role_fit_ball_winning_midfielder",
+    "role_fit_ball_playing_defender_min": "role_fit_ball_playing_defender",
+    "role_fit_defensive_stopper_min": "role_fit_defensive_stopper",
+    "role_fit_shot_stopper_min": "role_fit_shot_stopper",
+}
+
+ADVANCED_SORT_COLUMNS = {
+    "overall_role_score": "overall_role_score",
+    "salary_value_score": "salary_value_score",
+    "salary_efficiency_score": "salary_efficiency_score",
+    "attack_score": "attack_score",
+    "shooting_score": "shooting_score",
+    "chance_creation_score": "chance_creation_score",
+    "progressive_pass_score": "progressive_pass_score",
+    "creative_pass_score": "creative_pass_score",
+    "pressing_score": "pressing_score",
+    "defensive_action_score": "defensive_action_score",
+    "ball_winning_score": "ball_winning_score",
+    "build_up_score": "build_up_score",
+    "aerial_defense_score": "aerial_defense_score",
+    "goalkeeper_score": "goalkeeper_score",
+    "minutes": "minutes",
+    "age": "age",
+    "salary_annual_gross_eur": "salary_annual_gross_eur",
+    **{column: column for column in ROLE_SCORE_COLUMNS.values()},
+}
+
+ADVANCED_RESULT_FIELDS = [
+    "player_id",
+    "player_name",
+    "team",
+    "league",
+    "position_group",
+    "age",
+    "minutes",
+    "salary_annual_gross_eur",
+    "overall_role_score",
+    "salary_value_label",
+    "salary_value_score",
+    "salary_efficiency_score",
+    "data_quality_note",
+]
+
 
 def get_role_options(position_group: str | None = None) -> list[dict[str, str]]:
     """Return role options allowed for the selected position group."""
@@ -72,6 +134,64 @@ def get_tactical_need_options(role_key: str | None = None) -> list[dict[str, str
 def load_scout_player_view(path: str | Path = DEFAULT_VIEW_PATH) -> list[dict[str, str]]:
     """Load the processed scout player view."""
     return read_csv_rows(path)
+
+
+def get_advanced_filter_schema(
+    players: list[dict[str, str]] | None = None,
+    view_path: str | Path = DEFAULT_VIEW_PATH,
+) -> dict[str, object]:
+    """Return the allowed filter schema for Button 4 advanced search."""
+    rows = players if players is not None else load_scout_player_view(view_path)
+    leagues = sorted({row.get("league", "") for row in rows if row.get("league")})
+    teams = sorted({row.get("team", "") for row in rows if row.get("team")})
+    salary_statuses = sorted({row.get("salary_value_status", "") for row in rows if row.get("salary_value_status")})
+
+    score_filters = [
+        {"key": key, "column": column, "type": "slider", "min": 0, "max": 100, "default": None}
+        for key, column in ADVANCED_SCORE_FILTER_COLUMNS.items()
+    ]
+
+    return {
+        "position_group": {
+            "type": "select",
+            "label": "포지션 그룹",
+            "options": ["ALL", "FW", "MF", "DF", "GK"],
+            "default": "ALL",
+        },
+        "league": {"type": "select", "label": "리그", "options": ["ALL", *leagues], "default": "ALL"},
+        "team": {"type": "select", "label": "팀", "options": ["ALL", *teams], "default": "ALL"},
+        "age": {"type": "range", "label": "나이", "min_key": "age_min", "max_key": "age_max"},
+        "salary": {
+            "type": "range",
+            "label": "연봉",
+            "min_key": "salary_min",
+            "max_key": "salary_max",
+            "unit": "EUR",
+        },
+        "minutes_min": {"type": "number", "label": "최소 출전 시간", "default": 700},
+        "salary_available_only": {"type": "checkbox", "label": "연봉 확인 선수만", "default": False},
+        "score_available_only": {"type": "checkbox", "label": "점수 계산 가능 선수만", "default": True},
+        "salary_value_status": {
+            "type": "select",
+            "label": "연봉 가치 상태",
+            "options": ["ALL", *salary_statuses],
+            "default": "ALL",
+        },
+        "score_filters": score_filters,
+        "sort_by": {
+            "type": "select",
+            "label": "정렬 기준",
+            "options": list(ADVANCED_SORT_COLUMNS),
+            "default": "overall_role_score",
+        },
+        "sort_direction": {
+            "type": "select",
+            "label": "정렬 방향",
+            "options": ["desc", "asc"],
+            "default": "desc",
+        },
+        "top_n": {"type": "number", "label": "결과 개수", "min": 1, "max": 100, "default": 50},
+    }
 
 
 def _matches_number_range(value: str | None, minimum: float | None = None, maximum: float | None = None) -> bool:
@@ -166,3 +286,194 @@ def find_role_based_players(
         reverse=True,
     )
     return results[:top_n]
+
+
+def validate_advanced_filters(filters: dict) -> dict[str, object]:
+    """Normalize Button 4 filter values into the allowed backend range."""
+    values = filters or {}
+    warnings: list[str] = []
+
+    position_group = str(values.get("position_group") or "ALL").upper()
+    if position_group not in {"ALL", "FW", "MF", "DF", "GK"}:
+        warnings.append("invalid_position_group_defaulted")
+        position_group = "ALL"
+
+    league = str(values.get("league") or "ALL")
+    team = str(values.get("team") or "ALL")
+    salary_value_status = str(values.get("salary_value_status") or "ALL")
+
+    sort_by = str(values.get("sort_by") or "overall_role_score")
+    if sort_by not in ADVANCED_SORT_COLUMNS:
+        warnings.append("invalid_sort_by_defaulted")
+        sort_by = "overall_role_score"
+
+    sort_direction = str(values.get("sort_direction") or "desc").lower()
+    if sort_direction not in {"asc", "desc"}:
+        warnings.append("invalid_sort_direction_defaulted")
+        sort_direction = "desc"
+
+    top_n = _parse_int(values.get("top_n"), 50)
+    if top_n < 1:
+        warnings.append("top_n_min_clamped")
+        top_n = 1
+    if top_n > 100:
+        warnings.append("top_n_max_clamped")
+        top_n = 100
+
+    normalized: dict[str, object] = {
+        "position_group": position_group,
+        "league": league,
+        "team": team,
+        "age_min": parse_float(values.get("age_min")),
+        "age_max": parse_float(values.get("age_max")),
+        "salary_min": parse_float(values.get("salary_min")),
+        "salary_max": parse_float(values.get("salary_max")),
+        "minutes_min": parse_float(values.get("minutes_min")),
+        "salary_available_only": _parse_bool_option(values.get("salary_available_only"), False),
+        "score_available_only": _parse_bool_option(values.get("score_available_only"), True),
+        "salary_value_status": salary_value_status,
+        "sort_by": sort_by,
+        "sort_direction": sort_direction,
+        "top_n": top_n,
+        "_warnings": warnings,
+    }
+
+    if normalized["minutes_min"] is None:
+        normalized["minutes_min"] = 700.0
+
+    if _range_is_reversed(normalized["age_min"], normalized["age_max"]):
+        normalized["age_min"], normalized["age_max"] = normalized["age_max"], normalized["age_min"]
+        warnings.append("age_range_swapped")
+    if _range_is_reversed(normalized["salary_min"], normalized["salary_max"]):
+        normalized["salary_min"], normalized["salary_max"] = normalized["salary_max"], normalized["salary_min"]
+        warnings.append("salary_range_swapped")
+
+    for filter_key in ADVANCED_SCORE_FILTER_COLUMNS:
+        score_min = parse_float(values.get(filter_key))
+        if score_min is None:
+            continue
+        normalized[filter_key] = max(0.0, min(score_min, 100.0))
+
+    return normalized
+
+
+def apply_advanced_filters(
+    filters: dict,
+    players: list[dict[str, str]] | None = None,
+    view_path: str | Path = DEFAULT_VIEW_PATH,
+) -> list[dict[str, str]]:
+    """Apply Button 4 advanced filters and return matching raw player rows."""
+    rows = players if players is not None else load_scout_player_view(view_path)
+    normalized = validate_advanced_filters(filters)
+
+    position_group = str(normalized["position_group"])
+    league = str(normalized["league"])
+    team = str(normalized["team"])
+    salary_value_status = str(normalized["salary_value_status"])
+
+    results: list[dict[str, str]] = []
+    for row in rows:
+        if normalized["score_available_only"] and row.get("score_available") != "true":
+            continue
+        if normalized["salary_available_only"] and row.get("salary_available") != "true":
+            continue
+        if position_group != "ALL" and row.get("position_group") != position_group:
+            continue
+        if league != "ALL" and row.get("league") != league:
+            continue
+        if team != "ALL" and row.get("team") != team:
+            continue
+        if salary_value_status != "ALL" and row.get("salary_value_status") != salary_value_status:
+            continue
+        if not _matches_optional_range(row.get("age"), normalized["age_min"], normalized["age_max"]):
+            continue
+        if not _matches_optional_range(row.get("salary_annual_gross_eur"), normalized["salary_min"], normalized["salary_max"]):
+            continue
+        if not _matches_optional_range(row.get("minutes"), normalized["minutes_min"], None):
+            continue
+        if not _passes_score_filters(row, normalized):
+            continue
+
+        results.append(row)
+
+    return results
+
+
+def sort_scout_results(rows: list[dict], sort_by: str, descending: bool = True) -> list[dict]:
+    """Sort scout result rows by an allowed numeric column."""
+    sort_column = ADVANCED_SORT_COLUMNS.get(sort_by, "overall_role_score")
+    return sorted(
+        rows,
+        key=lambda row: (
+            parse_float(row.get(sort_column)) if parse_float(row.get(sort_column)) is not None else -1.0,
+            parse_float(row.get("minutes")) or 0.0,
+        ),
+        reverse=descending,
+    )
+
+
+def advanced_search_players(
+    filters: dict,
+    players: list[dict[str, str]] | None = None,
+    view_path: str | Path = DEFAULT_VIEW_PATH,
+) -> list[dict[str, object]]:
+    """Run the Button 4 advanced search flow and return frontend-ready rows."""
+    normalized = validate_advanced_filters(filters)
+    filtered_rows = apply_advanced_filters(normalized, players=players, view_path=view_path)
+    sorted_rows = sort_scout_results(
+        filtered_rows,
+        str(normalized["sort_by"]),
+        descending=normalized["sort_direction"] != "asc",
+    )
+    top_n = int(normalized["top_n"])
+    return [_build_advanced_result_row(row, str(normalized["sort_by"])) for row in sorted_rows[:top_n]]
+
+
+def _build_advanced_result_row(row: dict[str, str], sort_by: str) -> dict[str, object]:
+    sort_column = ADVANCED_SORT_COLUMNS.get(sort_by, "overall_role_score")
+    result: dict[str, object] = {}
+    for field in ADVANCED_RESULT_FIELDS:
+        if field in {"age", "minutes", "salary_annual_gross_eur", "overall_role_score", "salary_value_score", "salary_efficiency_score"}:
+            result[field] = parse_float(row.get(field))
+        else:
+            result[field] = row.get(field, "")
+
+    result["selected_sort_by"] = sort_by
+    result["selected_sort_score"] = parse_float(row.get(sort_column))
+    return result
+
+
+def _passes_score_filters(row: dict[str, str], filters: dict[str, object]) -> bool:
+    for filter_key, column in ADVANCED_SCORE_FILTER_COLUMNS.items():
+        minimum = filters.get(filter_key)
+        if minimum is None:
+            continue
+        if not _matches_number_range(row.get(column), parse_float(minimum), None):
+            return False
+    return True
+
+
+def _matches_optional_range(value: str | None, minimum: object = None, maximum: object = None) -> bool:
+    min_value = parse_float(minimum)
+    max_value = parse_float(maximum)
+    if min_value is None and max_value is None:
+        return True
+    return _matches_number_range(value, min_value, max_value)
+
+
+def _range_is_reversed(minimum: object, maximum: object) -> bool:
+    min_value = parse_float(minimum)
+    max_value = parse_float(maximum)
+    return min_value is not None and max_value is not None and min_value > max_value
+
+
+def _parse_int(value: object, default: int) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _parse_bool_option(value: object, default: bool) -> bool:
+    parsed = parse_bool(value)
+    return default if parsed is None else parsed
