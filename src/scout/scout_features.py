@@ -53,6 +53,25 @@ ROLE_FIT_COLUMNS = [
     "role_fit_shot_stopper",
 ]
 
+SALARY_VALUE_COLUMNS = [
+    "current_salary_annual_gross_eur",
+    "performance_percentile_by_position",
+    "salary_percentile_by_position",
+    "salary_percentile_by_league",
+    "minutes_percentile_by_position",
+    "salary_efficiency_score",
+    "predicted_next_salary_annual_gross_eur",
+    "predicted_next_salary_log",
+    "prediction_model_version",
+    "prediction_confidence",
+    "salary_gap_eur",
+    "salary_gap_pct",
+    "salary_value_score",
+    "salary_value_status",
+    "salary_value_label",
+    "value_reason_summary",
+]
+
 VIEW_COLUMNS = [
     "player_id",
     "stats_row_id",
@@ -81,6 +100,7 @@ VIEW_COLUMNS = [
     *SCORE_COLUMNS,
     *ROLE_FIT_COLUMNS,
     "overall_role_score",
+    *SALARY_VALUE_COLUMNS,
 ]
 
 
@@ -211,6 +231,22 @@ def _score_median(scores: Iterable[float | None]) -> float:
     if not values:
         return 0.0
     return round(float(median(values)), 2)
+
+
+def _percentile_from_sorted(value: float | None, ordered: list[float]) -> float | None:
+    if value is None or not ordered:
+        return None
+    lower = ordered[0]
+    upper = ordered[-1]
+    clipped = _clamp(value, lower, upper)
+    return round((bisect_right(ordered, clipped) / len(ordered)) * 100, 2)
+
+
+def _value_at_percentile(ordered: list[float], percentile: float | None) -> float | None:
+    if percentile is None or not ordered:
+        return None
+    index = int(round((len(ordered) - 1) * (_clamp(percentile, 0.0, 100.0) / 100)))
+    return ordered[max(0, min(len(ordered) - 1, index))]
 
 
 def _weighted_score(parts: list[tuple[float | None, float]]) -> float:
@@ -418,7 +454,165 @@ def build_scout_player_view_rows(base_rows: list[dict[str, str]]) -> list[dict[s
             }
         )
 
+    _add_salary_value_columns(output_rows)
     return output_rows
+
+
+def _add_salary_value_columns(rows: list[dict[str, object]]) -> None:
+    """Add Button 2 salary-value diagnosis columns in place.
+
+    The prediction columns intentionally use a baseline percentile model for now.
+    A future ML model can overwrite the same columns without changing the frontend contract.
+    """
+    performance_by_position: dict[str, list[float]] = {}
+    salary_by_position: dict[str, list[float]] = {}
+    salary_by_league: dict[str, list[float]] = {}
+    minutes_by_position: dict[str, list[float]] = {}
+
+    for row in rows:
+        position = str(row.get("position_group") or "")
+        league = str(row.get("league") or "")
+        performance = parse_float(row.get("overall_role_score"))
+        salary = parse_float(row.get("salary_annual_gross_eur"))
+        minutes = parse_float(row.get("minutes"))
+
+        if position and str(row.get("score_available")) == "true" and performance is not None:
+            performance_by_position.setdefault(position, []).append(performance)
+        if position and str(row.get("score_available")) == "true" and minutes is not None:
+            minutes_by_position.setdefault(position, []).append(minutes)
+        if position and str(row.get("salary_available")) == "true" and salary is not None:
+            salary_by_position.setdefault(position, []).append(salary)
+        if league and str(row.get("salary_available")) == "true" and salary is not None:
+            salary_by_league.setdefault(league, []).append(salary)
+
+    for lookup in (performance_by_position, salary_by_position, salary_by_league, minutes_by_position):
+        for key in list(lookup):
+            lookup[key] = sorted(lookup[key])
+
+    for row in rows:
+        position = str(row.get("position_group") or "")
+        league = str(row.get("league") or "")
+        performance = parse_float(row.get("overall_role_score"))
+        salary = parse_float(row.get("salary_annual_gross_eur"))
+        minutes = parse_float(row.get("minutes"))
+
+        performance_pct = _percentile_from_sorted(performance, performance_by_position.get(position, []))
+        salary_position_pct = _percentile_from_sorted(salary, salary_by_position.get(position, []))
+        salary_league_pct = _percentile_from_sorted(salary, salary_by_league.get(league, []))
+        minutes_pct = _percentile_from_sorted(minutes, minutes_by_position.get(position, []))
+
+        predicted_salary = _value_at_percentile(salary_by_position.get(position, []), performance_pct)
+        salary_efficiency = _build_salary_efficiency_score(performance_pct, salary_position_pct, minutes_pct)
+        confidence = _build_prediction_confidence(row, minutes_pct)
+
+        if salary is None or predicted_salary is None or salary <= 0:
+            gap_eur = None
+            gap_pct = None
+            value_score = None
+            status = "unknown"
+            label = "평가 불가"
+        else:
+            gap_eur = predicted_salary - salary
+            gap_pct = gap_eur / salary
+            value_score = _build_salary_value_score(gap_pct, performance_pct, salary_position_pct)
+            status, label = _classify_salary_value(gap_pct, performance_pct, salary_position_pct)
+
+        row["current_salary_annual_gross_eur"] = _to_output_number(salary)
+        row["performance_percentile_by_position"] = _to_output_number(performance_pct)
+        row["salary_percentile_by_position"] = _to_output_number(salary_position_pct)
+        row["salary_percentile_by_league"] = _to_output_number(salary_league_pct)
+        row["minutes_percentile_by_position"] = _to_output_number(minutes_pct)
+        row["salary_efficiency_score"] = _to_output_number(salary_efficiency)
+        row["predicted_next_salary_annual_gross_eur"] = _to_output_number(predicted_salary)
+        row["predicted_next_salary_log"] = ""
+        row["prediction_model_version"] = "baseline_percentile_v1"
+        row["prediction_confidence"] = _to_output_number(confidence)
+        row["salary_gap_eur"] = _to_output_number(gap_eur)
+        row["salary_gap_pct"] = _to_output_number(round(gap_pct * 100, 2) if gap_pct is not None else None)
+        row["salary_value_score"] = _to_output_number(value_score)
+        row["salary_value_status"] = status
+        row["salary_value_label"] = label
+        row["value_reason_summary"] = _build_value_reason_summary(
+            label,
+            performance_pct,
+            salary_position_pct,
+            gap_pct,
+            confidence,
+        )
+
+
+def _build_salary_efficiency_score(
+    performance_pct: float | None,
+    salary_pct: float | None,
+    minutes_pct: float | None,
+) -> float | None:
+    if performance_pct is None or salary_pct is None:
+        return None
+    minutes_bonus = ((minutes_pct or 50.0) - 50.0) * 0.10
+    return round(_clamp(50.0 + (performance_pct - salary_pct) + minutes_bonus, 0.0, 100.0), 2)
+
+
+def _build_salary_value_score(
+    gap_pct: float,
+    performance_pct: float | None,
+    salary_pct: float | None,
+) -> float:
+    percentile_gap = (performance_pct or 0.0) - (salary_pct or 0.0)
+    gap_component = _clamp(gap_pct * 50.0, -35.0, 35.0)
+    return round(_clamp(50.0 + (percentile_gap * 0.65) + gap_component, 0.0, 100.0), 2)
+
+
+def _classify_salary_value(
+    gap_pct: float,
+    performance_pct: float | None,
+    salary_pct: float | None,
+) -> tuple[str, str]:
+    percentile_gap = (performance_pct or 0.0) - (salary_pct or 0.0)
+    if gap_pct >= 0.20 and percentile_gap >= 10:
+        return "undervalued", "저평가"
+    if gap_pct <= -0.20 and percentile_gap <= -10:
+        return "overvalued", "고평가"
+    return "fair", "적정"
+
+
+def _build_prediction_confidence(row: dict[str, object], minutes_pct: float | None) -> float:
+    confidence = 65.0
+    if str(row.get("salary_available")) == "true":
+        confidence += 10.0
+    if str(row.get("score_available")) == "true":
+        confidence += 10.0
+    minutes = parse_float(row.get("minutes"))
+    if minutes is not None and minutes >= 1000:
+        confidence += 10.0
+    elif minutes is not None and minutes >= 700:
+        confidence += 5.0
+    elif minutes is not None and minutes < 300:
+        confidence -= 15.0
+    if minutes_pct is not None and minutes_pct < 20:
+        confidence -= 5.0
+    if "passing_proxy_limited" in str(row.get("data_quality_note") or ""):
+        confidence -= 5.0
+    return round(_clamp(confidence, 0.0, 100.0), 2)
+
+
+def _build_value_reason_summary(
+    label: str,
+    performance_pct: float | None,
+    salary_pct: float | None,
+    gap_pct: float | None,
+    confidence: float,
+) -> str:
+    if performance_pct is None or salary_pct is None or gap_pct is None:
+        return "연봉 또는 성능 데이터가 부족해 평가를 확정하기 어렵습니다."
+
+    direction = "높고" if performance_pct >= salary_pct else "낮고"
+    gap_text = f"{round(gap_pct * 100, 1)}%"
+    return (
+        f"같은 포지션 기준 성능 percentile은 {performance_pct:.1f}, "
+        f"연봉 percentile은 {salary_pct:.1f}로 성능 위치가 연봉 위치보다 {direction}, "
+        f"baseline 예측 연봉과 현재 연봉의 차이는 {gap_text}입니다. "
+        f"현재 분류는 {label}이며 예측 신뢰도는 {confidence:.1f}/100입니다."
+    )
 
 
 def build_and_save_scout_player_view(

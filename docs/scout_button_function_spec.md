@@ -101,18 +101,18 @@
 
 ### Button Purpose
 
-25/26 시즌 스탯과 현재 연봉을 기준으로 선수가 저평가, 적정, 고평가인지 측정한다.  
-얼마나 저평가 또는 고평가인지 수치로 보여준다.
+25/26 시즌 스탯과 현재 연봉을 기준으로 선수의 연봉 가치를 진단한다.  
+기본 화면은 선수 1명을 선택해 `저평가 / 적정 / 고평가` 결과와 현재 연봉, 예측 다음 시즌 연봉, 차액, 설명 문장을 보여주는 방식으로 잡는다.
 
-다음 시즌 예상 연봉을 보여줄지는 추후 결정한다.
+최종적으로는 다음 시즌 연봉 예측 모델 결과를 사용한다.  
+초기 구현에서는 모델이 붙기 전에도 UI와 백엔드 계약을 검증할 수 있도록 `baseline_percentile_v1` 예측값을 저장한다.
 
 ### Frontend Input Candidates
 
-- `player_name` 또는 `player_id`
-- `league`
-- `position_group`
-- `salary_compare_mode`: `current_salary`, `predicted_salary_optional`
+- `player_id`: 필수. 선수 검색으로 선택한다.
 - `metric_focus`: `overall`, `attack`, `passing`, `defense`, `physical`, `balanced`
+- `comparison_scope`: `same_position`, `same_league_position`, `big5`
+- `min_minutes`: `0`, `300`, `700`, `1000`, `1500`
 
 ### Required Functions
 
@@ -127,17 +127,22 @@
 - 동명이인 구분을 위해 팀, 리그, 나이를 함께 반환한다.
 - 프론트엔드는 combobox/search select에 사용한다.
 
-#### `calculate_expected_salary(players_df) -> DataFrame`
+#### `predict_next_salary(players_df) -> DataFrame`
 
 사용 버튼:
 - 2번 25/26 시즌 스탯 기반 선수 측정
-- 3번 유사 선수 탐색 보조
 - 4번 세밀 조건 검색 보조
 
 기능:
-- 선수의 스탯, 포지션, 나이, 리그, 출전 시간 등을 기반으로 예상 연봉을 계산한다.
-- 실제 예측 모델이 없을 경우 초기 버전에서는 산술식 기반 점수로 시작한다.
-- 결과 컬럼 예: `predicted_salary_eur`
+- 선수의 스탯, 포지션, 나이, 리그, 출전 시간 등을 기반으로 다음 시즌 예상 연봉을 계산한다.
+- 운영 기본값은 batch prediction 결과를 `scout_player_view_2526.csv`에 저장하는 것이다.
+- 개발/검증용으로는 실시간 예측 함수도 둘 수 있다.
+- 현재 구현은 모델 대체 전 baseline으로 `baseline_percentile_v1`을 사용한다.
+- 결과 컬럼 예:
+  - `predicted_next_salary_annual_gross_eur`
+  - `predicted_next_salary_log`
+  - `prediction_model_version`
+  - `prediction_confidence`
 
 #### `calculate_salary_value_gap(players_df) -> DataFrame`
 
@@ -152,6 +157,25 @@
   - `value_status`
 - `value_status` 예: `저평가`, `적정`, `고평가`
 
+현재 processed CSV에 저장하는 2번 버튼 컬럼:
+
+- `current_salary_annual_gross_eur`
+- `performance_percentile_by_position`
+- `salary_percentile_by_position`
+- `salary_percentile_by_league`
+- `minutes_percentile_by_position`
+- `salary_efficiency_score`
+- `predicted_next_salary_annual_gross_eur`
+- `predicted_next_salary_log`
+- `prediction_model_version`
+- `prediction_confidence`
+- `salary_gap_eur`
+- `salary_gap_pct`
+- `salary_value_score`
+- `salary_value_status`
+- `salary_value_label`
+- `value_reason_summary`
+
 #### `evaluate_player_value(player_id: str, options: dict) -> dict`
 
 사용 버튼:
@@ -161,6 +185,19 @@
 - 특정 선수 1명에 대한 평가 결과를 반환한다.
 - 현재 연봉, 예상 연봉, 저평가/고평가 상태, 차이 수치, 핵심 근거 지표를 포함한다.
 - 프론트엔드는 이 결과를 선수 평가 카드나 상세 패널에 사용한다.
+
+반환 기본 방향:
+
+- 선수 기본 정보
+- 평가 결과 라벨과 점수
+- 현재 연봉
+- 예측 다음 시즌 연봉
+- 차액과 차이율
+- 성능 percentile
+- 연봉 percentile
+- 예측 모델 버전과 신뢰도
+- 설명 문장
+- 주의사항 배열
 
 ---
 

@@ -288,3 +288,41 @@ clipping 이후 포지션 그룹별 percentile score를 만든다.
 - `SCA_per90`, `Press_per90`, `TklAtt3rd_per90`, `PKatt_per90`는 이상치가 매우 커서 1차 점수 계산에서 제외했다.
 - 패스 전용 신뢰 컬럼이 부족하므로 `creative_pass_score`, `progressive_pass_score`, `build_up_score`는 proxy 점수다.
 - 이 한계는 `data_quality_note`의 `passing_proxy_limited`로 표시한다.
+
+## Button 2 Salary Diagnosis Columns
+
+2번 버튼은 `25/26 시즌 스탯 기반 선수 측정`이며, 선수 1명을 선택해 연봉 가치 진단 결과를 보여준다.
+
+초기 구현은 다음 시즌 연봉 예측 모델이 붙기 전에도 UI와 백엔드 계약을 검증할 수 있도록 `baseline_percentile_v1` 예측값을 사용한다.  
+향후 ML 모델이 준비되면 같은 컬럼에 모델 예측값을 저장하면 된다.
+
+추가 컬럼:
+
+- `current_salary_annual_gross_eur`
+- `performance_percentile_by_position`
+- `salary_percentile_by_position`
+- `salary_percentile_by_league`
+- `minutes_percentile_by_position`
+- `salary_efficiency_score`
+- `predicted_next_salary_annual_gross_eur`
+- `predicted_next_salary_log`
+- `prediction_model_version`
+- `prediction_confidence`
+- `salary_gap_eur`
+- `salary_gap_pct`
+- `salary_value_score`
+- `salary_value_status`
+- `salary_value_label`
+- `value_reason_summary`
+
+현재 baseline 예측 방식:
+
+1. `overall_role_score`를 같은 포지션 그룹 안에서 percentile로 변환한다.
+2. 같은 포지션 그룹의 연봉 분포에서 성능 percentile 위치의 연봉을 baseline 예측 연봉으로 둔다.
+3. 현재 연봉과 baseline 예측 연봉의 차이로 저평가, 적정, 고평가를 분류한다.
+
+주의:
+
+- 이 값은 아직 실제 다음 시즌 연봉 예측 모델이 아니다.
+- `prediction_model_version`이 `baseline_percentile_v1`이면 프론트는 "모델 연결 전 기준 평가" 또는 내부용 표시로 처리할 수 있다.
+- 저연봉 선수는 `salary_gap_pct`가 크게 튈 수 있으므로, 화면에서는 차이율만 단독 강조하지 않는다.
