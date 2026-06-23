@@ -131,6 +131,16 @@ def get_tactical_need_options(role_key: str | None = None) -> list[dict[str, str
     return [{"value": option, "label": option} for option in options]
 
 
+def get_similarity_focus_options() -> list[dict[str, str]]:
+    """Return similarity focus options for Button 3."""
+    return [dict(option) for option in SIMILARITY_FOCUS_OPTIONS]
+
+
+def get_position_scope_options() -> list[dict[str, str]]:
+    """Return position scope options for Button 3."""
+    return [dict(option) for option in POSITION_SCOPE_OPTIONS]
+
+
 def load_scout_player_view(path: str | Path = DEFAULT_VIEW_PATH) -> list[dict[str, str]]:
     """Load the processed scout player view."""
     return read_csv_rows(path)

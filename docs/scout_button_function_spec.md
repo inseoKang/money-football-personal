@@ -101,18 +101,18 @@
 
 ### Button Purpose
 
-25/26 시즌 스탯과 현재 연봉을 기준으로 선수가 저평가, 적정, 고평가인지 측정한다.  
-얼마나 저평가 또는 고평가인지 수치로 보여준다.
+25/26 시즌 스탯과 현재 연봉을 기준으로 선수의 연봉 가치를 진단한다.  
+기본 화면은 선수 1명을 선택해 `저평가 / 적정 / 고평가` 결과와 현재 연봉, 예측 다음 시즌 연봉, 차액, 설명 문장을 보여주는 방식으로 잡는다.
 
-다음 시즌 예상 연봉을 보여줄지는 추후 결정한다.
+최종적으로는 다음 시즌 연봉 예측 모델 결과를 사용한다.  
+초기 구현에서는 모델이 붙기 전에도 UI와 백엔드 계약을 검증할 수 있도록 `baseline_percentile_v1` 예측값을 저장한다.
 
 ### Frontend Input Candidates
 
-- `player_name` 또는 `player_id`
-- `league`
-- `position_group`
-- `salary_compare_mode`: `current_salary`, `predicted_salary_optional`
+- `player_id`: 필수. 선수 검색으로 선택한다.
 - `metric_focus`: `overall`, `attack`, `passing`, `defense`, `physical`, `balanced`
+- `comparison_scope`: `same_position`, `same_league_position`, `big5`
+- `min_minutes`: `0`, `300`, `700`, `1000`, `1500`
 
 ### Required Functions
 
@@ -127,17 +127,22 @@
 - 동명이인 구분을 위해 팀, 리그, 나이를 함께 반환한다.
 - 프론트엔드는 combobox/search select에 사용한다.
 
-#### `calculate_expected_salary(players_df) -> DataFrame`
+#### `predict_next_salary(players_df) -> DataFrame`
 
 사용 버튼:
 - 2번 25/26 시즌 스탯 기반 선수 측정
-- 3번 유사 선수 탐색 보조
 - 4번 세밀 조건 검색 보조
 
 기능:
-- 선수의 스탯, 포지션, 나이, 리그, 출전 시간 등을 기반으로 예상 연봉을 계산한다.
-- 실제 예측 모델이 없을 경우 초기 버전에서는 산술식 기반 점수로 시작한다.
-- 결과 컬럼 예: `predicted_salary_eur`
+- 선수의 스탯, 포지션, 나이, 리그, 출전 시간 등을 기반으로 다음 시즌 예상 연봉을 계산한다.
+- 운영 기본값은 batch prediction 결과를 `scout_player_view_2526.csv`에 저장하는 것이다.
+- 개발/검증용으로는 실시간 예측 함수도 둘 수 있다.
+- 현재 구현은 모델 대체 전 baseline으로 `baseline_percentile_v1`을 사용한다.
+- 결과 컬럼 예:
+  - `predicted_next_salary_annual_gross_eur`
+  - `predicted_next_salary_log`
+  - `prediction_model_version`
+  - `prediction_confidence`
 
 #### `calculate_salary_value_gap(players_df) -> DataFrame`
 
@@ -152,6 +157,25 @@
   - `value_status`
 - `value_status` 예: `저평가`, `적정`, `고평가`
 
+현재 processed CSV에 저장하는 2번 버튼 컬럼:
+
+- `current_salary_annual_gross_eur`
+- `performance_percentile_by_position`
+- `salary_percentile_by_position`
+- `salary_percentile_by_league`
+- `minutes_percentile_by_position`
+- `salary_efficiency_score`
+- `predicted_next_salary_annual_gross_eur`
+- `predicted_next_salary_log`
+- `prediction_model_version`
+- `prediction_confidence`
+- `salary_gap_eur`
+- `salary_gap_pct`
+- `salary_value_score`
+- `salary_value_status`
+- `salary_value_label`
+- `value_reason_summary`
+
 #### `evaluate_player_value(player_id: str, options: dict) -> dict`
 
 사용 버튼:
@@ -161,6 +185,19 @@
 - 특정 선수 1명에 대한 평가 결과를 반환한다.
 - 현재 연봉, 예상 연봉, 저평가/고평가 상태, 차이 수치, 핵심 근거 지표를 포함한다.
 - 프론트엔드는 이 결과를 선수 평가 카드나 상세 패널에 사용한다.
+
+반환 기본 방향:
+
+- 선수 기본 정보
+- 평가 결과 라벨과 점수
+- 현재 연봉
+- 예측 다음 시즌 연봉
+- 차액과 차이율
+- 성능 percentile
+- 연봉 percentile
+- 예측 모델 버전과 신뢰도
+- 설명 문장
+- 주의사항 배열
 
 ---
 
@@ -172,12 +209,14 @@
 
 단순히 이름만 받는 방식은 정보가 부족할 수 있으므로, 기준 선수 선택 후 어떤 기준으로 비슷한 선수를 찾을지 추가 질문을 제공한다.
 
+상세 설계는 `docs/scout_third_button_similar_player_spec.md`를 기준으로 한다.
+
 ### Frontend Input Candidates
 
 - `base_player_id`
-- `position_group`: 같은 포지션만 볼지, 전체에서 볼지 선택
+- `position_scope`: 같은 포지션만 볼지, 인접 포지션까지 허용할지, 전체에서 볼지 선택
 - `similarity_focus`: `overall`, `role`, `attack`, `passing`, `defense`, `physical`, `value`
-- `age_range`: 제한 없음, U23, U26, U30 등
+- `age_max`: 제한 없음, U23, U26, U30 등
 - `max_salary`
 - `min_minutes`
 - `league`
@@ -191,10 +230,19 @@
 
 기능:
 - 유사도 기준 선택지를 반환한다.
-- 예: 전체 스타일 유사, 공격 스타일 유사, 패스 스타일 유사, 수비 스타일 유사, 연봉 대비 유사 대체자.
+- 예: 전체 스타일 유사, 역할 적합도 유사, 공격 성향 유사, 창의성/전개 성향 유사, 수비 성향 유사, 가성비 대체 후보.
+- 패스 관련 선택지는 정밀 패스 데이터가 아니라 현재 proxy 점수를 사용하므로 프론트 라벨에서도 `창의성/전개 성향`으로 표현한다.
 - 프론트엔드에서 유사도 기준 selectbox/card에 사용한다.
 
-#### `build_player_feature_vector(players_df, focus: str) -> DataFrame`
+#### `get_position_scope_options() -> list[dict]`
+
+사용 버튼:
+- 3번 유사 선수 탐색
+
+기능:
+- 같은 포지션만 탐색할지, 인접 포지션까지 허용할지, 전체 포지션에서 찾을지 선택지를 반환한다.
+
+#### `build_player_feature_vector(player: dict, focus: str) -> dict[str, float]`
 
 사용 버튼:
 - 3번 유사 선수 탐색
@@ -202,22 +250,18 @@
 기능:
 - 선수별 유사도 계산에 사용할 feature vector를 만든다.
 - `focus`에 따라 사용할 컬럼 묶음이 달라진다.
-- 예: `passing` focus면 패스 관련 지표 비중을 높인다.
+- 예: `passing` focus면 `chance_creation_score`, `creative_pass_score`, `progressive_pass_score`, `build_up_score`를 사용한다.
+- `value` focus는 raw 연봉 금액 대신 성능 percentile, 연봉 percentile, 연봉 효율, 연봉 가치 점수를 사용한다.
 
-#### `calculate_player_similarity(players_df, base_player_id: str, focus: str) -> DataFrame`
+#### `calculate_similarity_score(base_vector: dict, candidate_vector: dict, focus: str) -> float`
 
 사용 버튼:
 - 3번 유사 선수 탐색
 
 기능:
-- 기준 선수와 다른 선수 간 유사도를 계산한다.
-- 가능하면 미리 계산해서 `similar_player_matrix_2526.csv`에 저장한다.
-- 결과 컬럼 예:
-  - `base_player_id`
-  - `candidate_player_id`
-  - `similarity_score`
-  - `style_similarity`
-  - `role_similarity`
+- 기준 선수와 후보 선수의 유사도 점수를 0~100으로 계산한다.
+- 초기 구현은 runtime weighted distance 방식으로 계산한다.
+- 현재 데이터 규모에서는 `similar_player_matrix_2526.csv`를 처음부터 만들지 않는다.
 
 #### `find_similar_players(filters: dict) -> DataFrame`
 
@@ -228,6 +272,8 @@
 - 기준 선수, 유사도 기준, 포지션, 나이, 연봉, 리그 조건을 적용한다.
 - 유사도 높은 순서로 후보를 반환한다.
 - 후보에서 기준 선수 본인은 제외한다.
+- `similarity_focus` 기본값은 `overall`, `position_scope` 기본값은 `same_position`, `min_minutes` 기본값은 700, `top_n` 기본값은 20이다.
+- 결과에는 `similarity_score`, `similarity_label`, `similarity_reason_summary`, `salary_value_label`, `data_quality_note`를 포함한다.
 
 ---
 
