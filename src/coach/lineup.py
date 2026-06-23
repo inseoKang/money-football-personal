@@ -1,16 +1,12 @@
-import pandas as pd
-
-from src.coach.config import COLUMN_MAP, PLAYERS_FILE
+from src.coach.config import COLUMN_MAP
 from src.coach.formation_run import get_formation_slots
 from src.coach.formations import ROLE_ALIASES
 from src.coach.scoring import calculate_player_score, role_score
-from src.coach.validators import validate_player_columns
+from src.coach.player_data import load_manager_players
 
 
 def load_players():
-    players = pd.read_csv(PLAYERS_FILE)
-    validate_player_columns(players)
-    return players
+    return load_manager_players()
 
 
 def get_candidate_positions(role):
@@ -48,7 +44,7 @@ def recommend_lineup(formation_name, tactic="balanced"):
                 "y": slot["y"],
                 "player": None,
                 "score": None,
-                "reason": f"{slot_id}({role}) 자리에 선택 가능한 선수가 없습니다.",
+                "reason": f"{slot_id}({role}) ?먮━???좏깮 媛?ν븳 ?좎닔媛 ?놁뒿?덈떎.",
             })
             continue
 
@@ -77,8 +73,8 @@ def recommend_lineup(formation_name, tactic="balanced"):
             },
             "score": float(best_player["coach_score"]),
             "reason": (
-                f"{slot_id}({role}) 자리에서 {tactic} 전술 기준 "
-                "점수가 가장 높습니다."
+                f"{slot_id}({role}) ?먮━?먯꽌 {tactic} ?꾩닠 湲곗? "
+                "?먯닔媛 媛???믪뒿?덈떎."
             ),
         })
 
@@ -95,7 +91,7 @@ def recommend_for_formation(players_df, formation):
     lineup = {}
     used_player_names = set()
 
-    name_column = "name" if "name" in players_df.columns else "Player"
+    name_column = "player" if "player" in players_df.columns else ("name" if "name" in players_df.columns else "Player")
     position_column = COLUMN_MAP["position"]
 
     for slot in formation_slots:
@@ -164,6 +160,8 @@ def recommend_best_formation(players_df):
 
 def recommend_vs_country(players_df, opponent_country, formation):
     return recommend_for_formation(players_df, formation)
+
+
 
 
 
