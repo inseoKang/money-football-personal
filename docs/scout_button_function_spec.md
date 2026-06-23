@@ -287,7 +287,6 @@
 ### Frontend Input Candidates
 
 - `position_group`
-- `position`
 - `league`
 - `team`
 - `age_min`
@@ -295,15 +294,26 @@
 - `salary_min`
 - `salary_max`
 - `minutes_min`
-- `overall_score_min`
+- `salary_available_only`
+- `score_available_only`
+- `salary_value_status`
+- `overall_role_score_min`
 - `attack_score_min`
-- `passing_score_min`
-- `midfield_score_min`
-- `defense_score_min`
-- `physical_score_min`
-- `gk_score_min`
-- `value_score_min`
+- `shooting_score_min`
+- `chance_creation_score_min`
+- `progressive_pass_score_min`
+- `creative_pass_score_min`
+- `pressing_score_min`
+- `defensive_action_score_min`
+- `ball_winning_score_min`
+- `build_up_score_min`
+- `aerial_defense_score_min`
+- `goalkeeper_score_min`
+- `salary_value_score_min`
+- `salary_efficiency_score_min`
+- `role_fit_*_min`
 - `sort_by`
+- `sort_direction`
 - `top_n`
 
 ### Required Functions
@@ -317,14 +327,15 @@
 - 프론트엔드가 렌더링할 수 있는 필터 질문지를 반환한다.
 - 각 필터의 타입, 라벨, 최소/최대값, 선택지, 기본값을 포함한다.
 - 이 함수가 있어야 프론트엔드가 임의 입력이 아니라 백엔드가 허용한 범위 안에서 UI를 만들 수 있다.
+- 리그/팀/연봉 가치 상태 선택지는 현재 `scout_player_view_2526.csv`에서 읽어 생성한다.
 
 예상 반환 구조:
 
 ```python
 {
-    "age": {"type": "range", "label": "나이", "min": 15, "max": 45},
+    "age": {"type": "range", "label": "나이", "min_key": "age_min", "max_key": "age_max"},
     "position_group": {"type": "select", "label": "포지션 그룹", "options": ["ALL", "FW", "MF", "DF", "GK"]},
-    "passing_score_min": {"type": "slider", "label": "최소 패스 점수", "min": 0, "max": 100},
+    "score_filters": [{"key": "creative_pass_score_min", "column": "creative_pass_score", "type": "slider"}],
 }
 ```
 
@@ -335,19 +346,22 @@
 
 기능:
 - 사용자가 보낸 필터가 허용된 schema 안에 있는지 검증한다.
-- 범위를 벗어난 값은 기본값으로 보정하거나 에러 메시지를 반환한다.
+- 범위를 벗어난 값은 기본값으로 보정하고 `_warnings` 배열에 보정 사유를 담는다.
+- `top_n`은 1~100으로 제한한다.
+- `sort_by`와 `sort_direction`은 허용 목록 안에서만 사용한다.
 - 백엔드와 프론트엔드 사이의 안전장치 역할을 한다.
 
-#### `apply_advanced_filters(players_df, filters: dict) -> DataFrame`
+#### `apply_advanced_filters(filters: dict, players: list | None = None) -> list[dict]`
 
 사용 버튼:
 - 4번 세밀 조건 검색
 
 기능:
 - 세밀 조건 검색의 실제 필터링을 수행한다.
-- 나이, 포지션, 리그, 연봉, 출전 시간, 능력치 점수 등을 조합해 후보를 줄인다.
+- 나이, 포지션, 리그, 팀, 연봉, 출전 시간, 연봉 가치 상태, 능력치 점수, 역할 적합도 점수를 조합해 후보를 줄인다.
+- 반환값은 아직 프론트 출력용으로 축약하지 않은 raw row 리스트다.
 
-#### `sort_scout_results(players_df, sort_by: str, ascending: bool = False) -> DataFrame`
+#### `sort_scout_results(rows: list[dict], sort_by: str, descending: bool = True) -> list[dict]`
 
 사용 버튼:
 - 1번 내가 원하는 선수 찾기
@@ -357,7 +371,54 @@
 
 기능:
 - 버튼별 결과를 지정 기준으로 정렬한다.
-- 예: `role_fit_score`, `value_score`, `similarity_score`, `prospect_score`, `salary_gap_pct`
+- 예: `overall_role_score`, `salary_value_score`, `attack_score`, `creative_pass_score`, `minutes`, `salary_annual_gross_eur`, `role_fit_*`
+
+#### `advanced_search_players(filters: dict, players: list | None = None) -> list[dict]`
+
+사용 버튼:
+- 4번 세밀 조건 검색
+
+기능:
+- 4번 버튼의 최종 진입 함수다.
+- 프론트엔드는 이 함수 하나만 호출하면 된다.
+- 내부에서 `validate_advanced_filters` -> `apply_advanced_filters` -> `sort_scout_results` 순서로 처리한다.
+- 결과는 프론트 카드/테이블에 바로 사용할 수 있도록 필요한 필드만 반환한다.
+
+반환 필드:
+
+- `player_id`
+- `player_name`
+- `team`
+- `league`
+- `position_group`
+- `age`
+- `minutes`
+- `salary_annual_gross_eur`
+- `overall_role_score`
+- `salary_value_label`
+- `salary_value_score`
+- `salary_efficiency_score`
+- `selected_sort_by`
+- `selected_sort_score`
+- `data_quality_note`
+
+#### `_build_advanced_result_row(row: dict, sort_by: str) -> dict`
+
+사용 버튼:
+- 4번 세밀 조건 검색 내부 보조
+
+기능:
+- raw row에서 프론트 출력에 필요한 필드만 정리한다.
+- 정렬 기준 점수를 `selected_sort_score`로 함께 반환한다.
+
+#### `_passes_score_filters(row: dict, filters: dict) -> bool`
+
+사용 버튼:
+- 4번 세밀 조건 검색 내부 보조
+
+기능:
+- 능력치 점수와 역할 적합도 점수의 최소 조건을 검사한다.
+- 점수형 필터가 많기 때문에 메인 필터링 함수에서 분리한다.
 
 ---
 
