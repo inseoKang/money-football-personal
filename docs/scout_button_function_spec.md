@@ -209,12 +209,14 @@
 
 단순히 이름만 받는 방식은 정보가 부족할 수 있으므로, 기준 선수 선택 후 어떤 기준으로 비슷한 선수를 찾을지 추가 질문을 제공한다.
 
+상세 설계는 `docs/scout_third_button_similar_player_spec.md`를 기준으로 한다.
+
 ### Frontend Input Candidates
 
 - `base_player_id`
-- `position_group`: 같은 포지션만 볼지, 전체에서 볼지 선택
+- `position_scope`: 같은 포지션만 볼지, 인접 포지션까지 허용할지, 전체에서 볼지 선택
 - `similarity_focus`: `overall`, `role`, `attack`, `passing`, `defense`, `physical`, `value`
-- `age_range`: 제한 없음, U23, U26, U30 등
+- `age_max`: 제한 없음, U23, U26, U30 등
 - `max_salary`
 - `min_minutes`
 - `league`
@@ -228,10 +230,19 @@
 
 기능:
 - 유사도 기준 선택지를 반환한다.
-- 예: 전체 스타일 유사, 공격 스타일 유사, 패스 스타일 유사, 수비 스타일 유사, 연봉 대비 유사 대체자.
+- 예: 전체 스타일 유사, 역할 적합도 유사, 공격 성향 유사, 창의성/전개 성향 유사, 수비 성향 유사, 가성비 대체 후보.
+- 패스 관련 선택지는 정밀 패스 데이터가 아니라 현재 proxy 점수를 사용하므로 프론트 라벨에서도 `창의성/전개 성향`으로 표현한다.
 - 프론트엔드에서 유사도 기준 selectbox/card에 사용한다.
 
-#### `build_player_feature_vector(players_df, focus: str) -> DataFrame`
+#### `get_position_scope_options() -> list[dict]`
+
+사용 버튼:
+- 3번 유사 선수 탐색
+
+기능:
+- 같은 포지션만 탐색할지, 인접 포지션까지 허용할지, 전체 포지션에서 찾을지 선택지를 반환한다.
+
+#### `build_player_feature_vector(player: dict, focus: str) -> dict[str, float]`
 
 사용 버튼:
 - 3번 유사 선수 탐색
@@ -239,22 +250,18 @@
 기능:
 - 선수별 유사도 계산에 사용할 feature vector를 만든다.
 - `focus`에 따라 사용할 컬럼 묶음이 달라진다.
-- 예: `passing` focus면 패스 관련 지표 비중을 높인다.
+- 예: `passing` focus면 `chance_creation_score`, `creative_pass_score`, `progressive_pass_score`, `build_up_score`를 사용한다.
+- `value` focus는 raw 연봉 금액 대신 성능 percentile, 연봉 percentile, 연봉 효율, 연봉 가치 점수를 사용한다.
 
-#### `calculate_player_similarity(players_df, base_player_id: str, focus: str) -> DataFrame`
+#### `calculate_similarity_score(base_vector: dict, candidate_vector: dict, focus: str) -> float`
 
 사용 버튼:
 - 3번 유사 선수 탐색
 
 기능:
-- 기준 선수와 다른 선수 간 유사도를 계산한다.
-- 가능하면 미리 계산해서 `similar_player_matrix_2526.csv`에 저장한다.
-- 결과 컬럼 예:
-  - `base_player_id`
-  - `candidate_player_id`
-  - `similarity_score`
-  - `style_similarity`
-  - `role_similarity`
+- 기준 선수와 후보 선수의 유사도 점수를 0~100으로 계산한다.
+- 초기 구현은 runtime weighted distance 방식으로 계산한다.
+- 현재 데이터 규모에서는 `similar_player_matrix_2526.csv`를 처음부터 만들지 않는다.
 
 #### `find_similar_players(filters: dict) -> DataFrame`
 
@@ -265,6 +272,8 @@
 - 기준 선수, 유사도 기준, 포지션, 나이, 연봉, 리그 조건을 적용한다.
 - 유사도 높은 순서로 후보를 반환한다.
 - 후보에서 기준 선수 본인은 제외한다.
+- `similarity_focus` 기본값은 `overall`, `position_scope` 기본값은 `same_position`, `min_minutes` 기본값은 700, `top_n` 기본값은 20이다.
+- 결과에는 `similarity_score`, `similarity_label`, `similarity_reason_summary`, `salary_value_label`, `data_quality_note`를 포함한다.
 
 ---
 
