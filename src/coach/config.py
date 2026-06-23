@@ -4,7 +4,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parents[2]
 
 PLAYERS_FILE = BASE_DIR / "data" / "sample_players.csv"
-MANAGER_PLAYERS_FILE = BASE_DIR / "data" / "manager_players.xlsx"
+MANAGER_PLAYERS_FILE = BASE_DIR / "data" / "manager_players.csv"
 
 COLUMN_MAP = {
     "player_id": "salary_id",

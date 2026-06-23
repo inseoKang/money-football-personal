@@ -1,4 +1,4 @@
-﻿altair==6.2.1
+altair==6.2.1
 anyio==4.14.0
 attrs==26.1.0
 blinker==1.9.0
@@ -19,7 +19,6 @@ jsonschema-specifications==2025.9.1
 MarkupSafe==3.0.3
 narwhals==2.22.1
 numpy==2.4.6
-openpyxl==3.1.5
 packaging==26.2
 pandas==3.0.3
 pillow==12.2.0

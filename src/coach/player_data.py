@@ -57,8 +57,8 @@ NUMERIC_COLUMNS = [
 BOOLEAN_COLUMNS = ["active", "loan"]
 
 DEFAULT_MANAGER_DATA_FILES = [
-    BASE_DIR / "data" / "manager_players.xlsx",
     BASE_DIR / "data" / "manager_players.csv",
+    BASE_DIR / "data" / "manager_players.xlsx",
     BASE_DIR / "data" / "25-26_merged_manager_raw_data.xlsx",
 ]
 
