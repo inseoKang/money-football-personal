@@ -1,99 +1,129 @@
-from src.coach.scoring import safe_number
+from __future__ import annotations
+
+import pandas as pd
 
 
-def _get_name_column(players_df):
-    if "name" in players_df.columns:
-        return "name"
-    if "Player" in players_df.columns:
-        return "Player"
-    if "player" in players_df.columns:
-        return "player"
-    return None
+POSITION_ORDER = ["GK", "DF", "MF", "FW"]
 
 
-def _get_first_existing_column(players_df, candidates):
-    for column in candidates:
-        if column in players_df.columns:
-            return column
-    return None
-
-
-def get_dashboard_summary(players_df):
-    name_column = _get_name_column(players_df)
-
-    overall_column = _get_first_existing_column(
-        players_df,
-        ["overall_score", "overall"],
-    )
-
-    market_value_column = _get_first_existing_column(
-        players_df,
-        [
-            "tm_current_market_value_eur",
-            "tm_market_value_season_eur",
-            "market_value_eur",
-            "annual_gross_eur",
-        ],
-    )
-
-    player_count = len(players_df)
-
-    if overall_column:
-        avg_overall = float(round(players_df[overall_column].fillna(0).mean(), 2))
-        top_player_row = players_df.sort_values(
-            overall_column,
-            ascending=False,
-        ).iloc[0]
-    else:
-        avg_overall = 0.0
-        top_player_row = players_df.iloc[0] if player_count > 0 else None
-
-    if market_value_column:
-        avg_market_value = float(round(players_df[market_value_column].fillna(0).mean(), 2))
-    else:
-        avg_market_value = 0.0
-
-    if top_player_row is not None and name_column:
-        top_player = top_player_row[name_column]
-    else:
-        top_player = None
-
+def build_dashboard_payload(players_df) -> dict:
+    players = players_df.copy()
     return {
-        "player_count": player_count,
-        "avg_overall": avg_overall,
-        "avg_market_value": avg_market_value,
-        "top_player": top_player,
+        "summary": _summary(players),
+        "positionDistribution": _position_distribution(players),
+        "leagueSummary": _league_summary(players),
+        "clubSummary": _club_summary(players),
+        "topPlayers": {
+            "overall": _top_players(players, "overall_score", 8),
+            "attack": _top_players(players, "attack_score", 8),
+            "defense": _top_players(players, "defense_score", 8),
+            "keeper": _top_players(players[players["position_group"].eq("GK")], "keeper_score", 8),
+            "goals": _top_players(players, "goals", 8),
+            "assists": _top_players(players, "assists", 8),
+        },
+        "positionScores": _position_scores(players),
     }
 
 
-def sort_players(players_df, sort_key):
-    sort_options = {
-        "종합 점수 높은 순": ["overall_score", "overall"],
-        "시장가치 높은 순": [
-            "tm_current_market_value_eur",
-            "tm_market_value_season_eur",
-            "market_value_eur",
-            "annual_gross_eur",
-        ],
-        "공격 점수 높은 순": ["attack_score", "shooting", "goals"],
-        "수비 점수 높은 순": ["defense_score", "defending", "tackles"],
-        "나이 어린 순": ["age", "Age"],
-        "가성비 높은 순": ["value_score"],
+def _summary(players) -> dict:
+    return {
+        "players": int(len(players)),
+        "leagues": int(players["league"].nunique()),
+        "clubs": int(players["club"].nunique()),
+        "avgAge": round(float(players["age"].mean()), 2),
+        "totalGoals": int(players["goals"].sum()),
+        "totalAssists": int(players["assists"].sum()),
+        "avgOverall": round(float(players["overall_score"].mean()), 2),
+        "avgMinutes": round(float(players["minutes"].mean()), 2),
     }
 
-    candidate_columns = sort_options.get(sort_key)
 
-    if not candidate_columns:
-        return players_df
+def _position_distribution(players) -> list[dict]:
+    counts = players["position_group"].value_counts().reindex(POSITION_ORDER).fillna(0)
+    return [
+        {"position": position, "players": int(counts[position])}
+        for position in POSITION_ORDER
+    ]
 
-    sort_column = _get_first_existing_column(players_df, candidate_columns)
 
-    if sort_column is None:
-        return players_df
-
-    ascending = sort_key == "나이 어린 순"
-
-    return players_df.sort_values(
-        sort_column,
-        ascending=ascending,
+def _league_summary(players) -> list[dict]:
+    grouped = (
+        players.groupby("league", as_index=False)
+        .agg(
+            players=("player", "count"),
+            clubs=("club", "nunique"),
+            avgOverall=("overall_score", "mean"),
+            goals=("goals", "sum"),
+            assists=("assists", "sum"),
+            avgAge=("age", "mean"),
+        )
+        .sort_values("avgOverall", ascending=False)
     )
+    return _round_records(grouped)
+
+
+def _club_summary(players, limit: int = 12) -> list[dict]:
+    grouped = (
+        players.groupby(["league", "club"], as_index=False)
+        .agg(
+            players=("player", "count"),
+            avgOverall=("overall_score", "mean"),
+            goals=("goals", "sum"),
+            assists=("assists", "sum"),
+            avgAge=("age", "mean"),
+        )
+        .sort_values("avgOverall", ascending=False)
+        .head(limit)
+    )
+    return _round_records(grouped)
+
+
+def _position_scores(players) -> list[dict]:
+    grouped = (
+        players.groupby("position_group", as_index=False)
+        .agg(
+            players=("player", "count"),
+            overall=("overall_score", "mean"),
+            attack=("attack_score", "mean"),
+            defense=("defense_score", "mean"),
+            keeper=("keeper_score", "mean"),
+            stamina=("stamina_score", "mean"),
+            discipline=("discipline_score", "mean"),
+        )
+    )
+    order = {position: index for index, position in enumerate(POSITION_ORDER)}
+    grouped["order"] = grouped["position_group"].map(order).fillna(99)
+    grouped = grouped.sort_values("order").drop(columns=["order"])
+    return _round_records(grouped)
+
+
+def _top_players(players, score_column: str, limit: int) -> list[dict]:
+    if players.empty:
+        return []
+
+    view = players.sort_values(score_column, ascending=False).head(limit)
+    rows = []
+    for _, player in view.iterrows():
+        rows.append(
+            {
+                "salaryId": int(player["salary_id"]),
+                "player": player["player"],
+                "club": player["club"],
+                "league": player["league"],
+                "position": player["position_group"],
+                "value": round(float(player[score_column]), 2),
+                "overall": round(float(player["overall_score"]), 2),
+            }
+        )
+    return rows
+
+
+def _round_records(df: pd.DataFrame) -> list[dict]:
+    records = df.to_dict(orient="records")
+    for record in records:
+        for key, value in list(record.items()):
+            if isinstance(value, float):
+                record[key] = round(value, 2)
+            elif hasattr(value, "item"):
+                record[key] = value.item()
+    return records

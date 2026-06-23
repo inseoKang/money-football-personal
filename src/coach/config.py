@@ -4,17 +4,18 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parents[2]
 
 PLAYERS_FILE = BASE_DIR / "data" / "sample_players.csv"
+MANAGER_PLAYERS_FILE = BASE_DIR / "data" / "manager_players.csv"
 
 COLUMN_MAP = {
-    "player_id": "player_id",
-    "name": "name",
-    "position": "position",
-    "overall": "overall",
-    "pace": "pace",
-    "shooting": "shooting",
-    "passing": "passing",
-    "defending": "defending",
-    "physical": "physical",
+    "player_id": "salary_id",
+    "name": "player",
+    "position": "position_group",
+    "overall": "overall_score",
+    "pace": "stamina_score",
+    "shooting": "attack_score",
+    "passing": "attack_score",
+    "defending": "defense_score",
+    "physical": "stamina_score",
 }
 
 TACTIC_WEIGHTS = {
