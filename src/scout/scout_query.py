@@ -14,6 +14,22 @@ from src.scout.similarity import (
 )
 
 
+SIMILARITY_FOCUS_OPTIONS = [
+    {"value": "overall", "label": "전체 스타일 유사"},
+    {"value": "role", "label": "역할 적합도 유사"},
+    {"value": "attack", "label": "공격 성향 유사"},
+    {"value": "passing", "label": "창의성/전개 성향 유사"},
+    {"value": "defense", "label": "수비 성향 유사"},
+    {"value": "physical", "label": "압박/활동량 유사"},
+    {"value": "value", "label": "연봉 가치까지 고려"},
+]
+
+POSITION_SCOPE_OPTIONS = [
+    {"value": "same_position", "label": "같은 포지션 그룹만"},
+    {"value": "adjacent_position", "label": "인접 포지션까지"},
+    {"value": "all", "label": "전체 포지션"},
+]
+
 ROLE_SCORE_COLUMNS = {
     "Finisher": "role_fit_finisher",
     "Pressing Forward": "role_fit_pressing_forward",
@@ -122,6 +138,13 @@ ADVANCED_RESULT_FIELDS = [
     "salary_efficiency_score",
     "data_quality_note",
 ]
+
+
+def _is_true(value: object) -> bool:
+    """CSV 문자열 true와 pandas bool True를 모두 안전하게 처리."""
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in {"true", "1", "yes", "y"}
 
 
 def get_role_options(position_group: str | None = None) -> list[dict[str, str]]:
@@ -290,29 +313,38 @@ def find_role_based_players(
     only_active_salary = bool(filters.get("only_active_salary", False))
 
     results: list[dict[str, object]] = []
+
     for row in rows:
-        if row.get("score_available") != "true":
+        if not _is_true(row.get("score_available")):
             continue
+
         if position_group != "ALL" and row.get("position_group") != position_group:
             continue
+
         if league != "ALL" and row.get("league") != league:
             continue
+
         if age_min is not None or age_max is not None:
             if not _matches_number_range(row.get("age"), age_min, age_max):
                 continue
+
         if min_minutes is not None and not _matches_number_range(row.get("minutes"), min_minutes, None):
             continue
+
         if max_salary is not None:
-            if row.get("salary_available") != "true":
+            if not _is_true(row.get("salary_available")):
                 continue
             if not _matches_number_range(row.get("salary_annual_gross_eur"), None, max_salary):
                 continue
+
         if not include_loan and parse_bool(row.get("salary_loan")) is True:
             continue
+
         if only_active_salary and parse_bool(row.get("salary_active")) is not True:
             continue
 
         adjusted_score = _priority_adjusted_score(row, score_column, priority_metrics)
+
         result = dict(row)
         result["selected_role"] = role_key
         result["selected_score_column"] = score_column
@@ -326,6 +358,7 @@ def find_role_based_players(
         ),
         reverse=True,
     )
+
     return results[:top_n]
 
 
@@ -385,6 +418,7 @@ def validate_advanced_filters(filters: dict) -> dict[str, object]:
     if _range_is_reversed(normalized["age_min"], normalized["age_max"]):
         normalized["age_min"], normalized["age_max"] = normalized["age_max"], normalized["age_min"]
         warnings.append("age_range_swapped")
+
     if _range_is_reversed(normalized["salary_min"], normalized["salary_max"]):
         normalized["salary_min"], normalized["salary_max"] = normalized["salary_max"], normalized["salary_min"]
         warnings.append("salary_range_swapped")
@@ -413,25 +447,35 @@ def apply_advanced_filters(
     salary_value_status = str(normalized["salary_value_status"])
 
     results: list[dict[str, str]] = []
+
     for row in rows:
-        if normalized["score_available_only"] and row.get("score_available") != "true":
+        if normalized["score_available_only"] and not _is_true(row.get("score_available")):
             continue
-        if normalized["salary_available_only"] and row.get("salary_available") != "true":
+
+        if normalized["salary_available_only"] and not _is_true(row.get("salary_available")):
             continue
+
         if position_group != "ALL" and row.get("position_group") != position_group:
             continue
+
         if league != "ALL" and row.get("league") != league:
             continue
+
         if team != "ALL" and row.get("team") != team:
             continue
+
         if salary_value_status != "ALL" and row.get("salary_value_status") != salary_value_status:
             continue
+
         if not _matches_optional_range(row.get("age"), normalized["age_min"], normalized["age_max"]):
             continue
+
         if not _matches_optional_range(row.get("salary_annual_gross_eur"), normalized["salary_min"], normalized["salary_max"]):
             continue
+
         if not _matches_optional_range(row.get("minutes"), normalized["minutes_min"], None):
             continue
+
         if not _passes_score_filters(row, normalized):
             continue
 
@@ -443,6 +487,7 @@ def apply_advanced_filters(
 def sort_scout_results(rows: list[dict], sort_by: str, descending: bool = True) -> list[dict]:
     """Sort scout result rows by an allowed numeric column."""
     sort_column = ADVANCED_SORT_COLUMNS.get(sort_by, "overall_role_score")
+
     return sorted(
         rows,
         key=lambda row: (
@@ -461,11 +506,13 @@ def advanced_search_players(
     """Run the Button 4 advanced search flow and return frontend-ready rows."""
     normalized = validate_advanced_filters(filters)
     filtered_rows = apply_advanced_filters(normalized, players=players, view_path=view_path)
+
     sorted_rows = sort_scout_results(
         filtered_rows,
         str(normalized["sort_by"]),
         descending=normalized["sort_direction"] != "asc",
     )
+
     top_n = int(normalized["top_n"])
     return [_build_advanced_result_row(row, str(normalized["sort_by"])) for row in sorted_rows[:top_n]]
 
@@ -473,38 +520,53 @@ def advanced_search_players(
 def _build_advanced_result_row(row: dict[str, str], sort_by: str) -> dict[str, object]:
     sort_column = ADVANCED_SORT_COLUMNS.get(sort_by, "overall_role_score")
     result: dict[str, object] = {}
+
     for field in ADVANCED_RESULT_FIELDS:
-        if field in {"age", "minutes", "salary_annual_gross_eur", "overall_role_score", "salary_value_score", "salary_efficiency_score"}:
+        if field in {
+            "age",
+            "minutes",
+            "salary_annual_gross_eur",
+            "overall_role_score",
+            "salary_value_score",
+            "salary_efficiency_score",
+        }:
             result[field] = parse_float(row.get(field))
         else:
             result[field] = row.get(field, "")
 
     result["selected_sort_by"] = sort_by
     result["selected_sort_score"] = parse_float(row.get(sort_column))
+
     return result
 
 
 def _passes_score_filters(row: dict[str, str], filters: dict[str, object]) -> bool:
     for filter_key, column in ADVANCED_SCORE_FILTER_COLUMNS.items():
         minimum = filters.get(filter_key)
+
         if minimum is None:
             continue
+
         if not _matches_number_range(row.get(column), parse_float(minimum), None):
             return False
+
     return True
 
 
 def _matches_optional_range(value: str | None, minimum: object = None, maximum: object = None) -> bool:
     min_value = parse_float(minimum)
     max_value = parse_float(maximum)
+
     if min_value is None and max_value is None:
         return True
+
     return _matches_number_range(value, min_value, max_value)
 
 
 def _range_is_reversed(minimum: object, maximum: object) -> bool:
     min_value = parse_float(minimum)
     max_value = parse_float(maximum)
+
     return min_value is not None and max_value is not None and min_value > max_value
 
 
@@ -517,4 +579,5 @@ def _parse_int(value: object, default: int) -> int:
 
 def _parse_bool_option(value: object, default: bool) -> bool:
     parsed = parse_bool(value)
+
     return default if parsed is None else parsed
