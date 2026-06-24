@@ -2,7 +2,13 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.coach.config import BASE_DIR
+from src.constants import RAW_DATA_DIR, SAMPLE_DATA_DIR
+from src.coach.config import (
+    BARCELONA_CLUB_ALIASES,
+    BARCELONA_PLAYERS_FILE,
+    LALIGA_KEYWORDS,
+    MANAGER_PLAYERS_FILE,
+)
 
 
 MANAGER_PLAYER_COLUMNS = [
@@ -57,17 +63,32 @@ NUMERIC_COLUMNS = [
 BOOLEAN_COLUMNS = ["active", "loan"]
 
 DEFAULT_MANAGER_DATA_FILES = [
-    BASE_DIR / "data" / "manager_players.csv",
-    BASE_DIR / "data" / "manager_players.xlsx",
-    BASE_DIR / "data" / "25-26_merged_manager_raw_data.xlsx",
+    MANAGER_PLAYERS_FILE,
+    MANAGER_PLAYERS_FILE.with_suffix(".xlsx"),
+    RAW_DATA_DIR / "manager_players_ex.csv",
+    RAW_DATA_DIR / "25-26_merged_manager_raw_data.xlsx",
 ]
+
+COLUMN_ALIASES = {
+    "player_name_clean": "player",
+    "league_canonical": "league",
+    "stats_club": "club",
+    "stats_position": "position",
+    "stats_age": "age",
+    "stats_nation": "country",
+    "salary_active": "active",
+    "salary_loan": "loan",
+}
+
+DEFAULT_SEASON = "2025-2026"
 
 
 def _first_existing_data_file():
     for path in DEFAULT_MANAGER_DATA_FILES:
         if path.exists():
             return path
-    return BASE_DIR / "data" / "sample_players.csv"
+
+    return SAMPLE_DATA_DIR / "sample_players.csv"
 
 
 def _read_data_file(path):
@@ -132,15 +153,50 @@ def _weighted_average(df, weights):
     return (total / total_weight).clip(0, 100).round(2)
 
 
-def select_manager_columns(players):
+def _normalize_text(value) -> str:
+    if pd.isna(value):
+        return ""
+    return str(value).strip().casefold()
+
+
+def _is_barcelona_club(value) -> bool:
+    text = _normalize_text(value)
+    return text in BARCELONA_CLUB_ALIASES or "barcelona" in text or "바르셀로나" in text
+
+
+def _is_laliga_league(value) -> bool:
+    text = _normalize_text(value)
+    return any(keyword in text for keyword in LALIGA_KEYWORDS)
+
+def _apply_column_aliases(players):
     output = players.copy()
+
+    for source, target in COLUMN_ALIASES.items():
+        if source in output.columns and target not in output.columns:
+            output[target] = output[source]
+
+    if "position_group" not in output.columns:
+        if "position" in output.columns:
+            output["position_group"] = output["position"]
+        else:
+            output["position_group"] = "UNK"
+
+    if "season" not in output.columns:
+        output["season"] = DEFAULT_SEASON
+
+    if "salary_id" not in output.columns:
+        output["salary_id"] = range(1, len(output) + 1)
+
+    return output
+
+def select_manager_columns(players):
+    output = _apply_column_aliases(players)
 
     for column in MANAGER_PLAYER_COLUMNS:
         if column not in output.columns:
             output[column] = None
 
     output = output[MANAGER_PLAYER_COLUMNS].copy()
-
     output["position_group"] = output["position_group"].map(_normalize_position_group)
 
     for column in NUMERIC_COLUMNS:
@@ -273,3 +329,42 @@ def load_manager_players(path=None):
     players = _read_data_file(data_path)
     players = select_manager_columns(players)
     return add_manager_scores(players)
+
+
+def export_barcelona_players(force: bool = False) -> Path:
+    """manager_players 전체 데이터에서 Barcelona 선수만 추출해 data/barcelona_players.csv를 생성합니다."""
+    if BARCELONA_PLAYERS_FILE.exists() and not force:
+        return BARCELONA_PLAYERS_FILE
+
+    BARCELONA_PLAYERS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    players = load_manager_players()
+    barcelona = players[players["club"].map(_is_barcelona_club)].copy()
+    barcelona.to_csv(BARCELONA_PLAYERS_FILE, index=False, encoding="utf-8-sig")
+    return BARCELONA_PLAYERS_FILE
+
+
+def load_barcelona_players(force_export: bool = False):
+    """내 스쿼드/감독 대시보드 전용 Barcelona 선수 데이터 로더입니다."""
+    path = export_barcelona_players(force=force_export)
+    return load_manager_players(path)
+
+
+def load_laliga_players(exclude_barcelona: bool = False):
+    """VS 스쿼드 상대 팀 선택용 LaLiga 선수 데이터 로더입니다."""
+    players = load_manager_players()
+    laliga = players[players["league"].map(_is_laliga_league)].copy()
+
+    if exclude_barcelona:
+        laliga = laliga[~laliga["club"].map(_is_barcelona_club)].copy()
+
+    return laliga.reset_index(drop=True)
+
+
+def get_laliga_club_options(exclude_barcelona: bool = True) -> list[str]:
+    players = load_laliga_players(exclude_barcelona=exclude_barcelona)
+    clubs = sorted(
+        str(club)
+        for club in players["club"].dropna().unique()
+        if str(club).strip()
+    )
+    return clubs

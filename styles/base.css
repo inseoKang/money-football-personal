@@ -1,0 +1,176 @@
+.stApp {
+  background: var(--bg);
+  color: var(--text) !important;
+}
+
+.block-container {
+  padding-top: 0.7rem;
+  padding-bottom: 2rem;
+  max-width: 1760px;
+  padding-left: 2.2rem;
+  padding-right: 2.2rem;
+}
+
+[data-testid="stHeader"] {
+  background: transparent;
+}
+
+[data-testid="stSidebar"] {
+  background: #081827;
+}
+
+h1, h2, h3, h4, h5, h6, p, span, div {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+[data-testid="stMarkdownContainer"],
+[data-testid="stMarkdownContainer"] *,
+[data-testid="stText"],
+[data-testid="stText"] *,
+[data-testid="stCaptionContainer"],
+[data-testid="stCaptionContainer"] * {
+  color: var(--text);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.page-title,
+.hero-panel h2,
+.mode-card h3 {
+  color: #f4fbff !important;
+}
+
+p,
+li,
+label,
+strong {
+  color: var(--text);
+}
+
+small,
+caption,
+.page-subtitle,
+.brand small,
+.hero-panel p,
+.mode-card p,
+.mode-card li,
+.toolbar-label,
+.player-sub,
+.stat-title,
+.stat-caption,
+.summary-label,
+.summary-caption,
+.mini-rank-meta,
+.muted,
+.pitch-caption,
+.mf-pitch-caption {
+  color: var(--muted) !important;
+}
+
+[data-testid="stSidebar"],
+[data-testid="stSidebar"] *,
+[data-testid="stSidebarNav"],
+[data-testid="stSidebarNav"] * {
+  color: var(--text) !important;
+}
+
+[data-testid="stWidgetLabel"],
+[data-testid="stWidgetLabel"] *,
+[data-testid="stSelectbox"] label,
+[data-testid="stTextInput"] label,
+[data-testid="stNumberInput"] label,
+[data-testid="stSlider"] label,
+[data-testid="stRadio"] label,
+[data-testid="stCheckbox"] label {
+  color: var(--text) !important;
+}
+
+/* ================================
+   Streamlit input/selectbox dark theme final fix
+   ================================ */
+
+/* 입력창/선택창 본체 */
+div[data-baseweb="select"] > div,
+div[data-baseweb="input"] > div,
+div[data-baseweb="textarea"] > div,
+input,
+textarea {
+  background-color: #10283a !important;
+  color: #e8f6ff !important;
+  -webkit-text-fill-color: #e8f6ff !important;
+  border-color: rgba(143, 176, 195, 0.45) !important;
+}
+
+/* selectbox 선택된 값 */
+div[data-baseweb="select"],
+div[data-baseweb="select"] *,
+div[data-baseweb="select"] input {
+  color: #e8f6ff !important;
+  -webkit-text-fill-color: #e8f6ff !important;
+}
+
+/* placeholder */
+input::placeholder,
+textarea::placeholder,
+div[data-baseweb="select"] [class*="placeholder"] {
+  color: #8fb0c3 !important;
+  -webkit-text-fill-color: #8fb0c3 !important;
+  opacity: 1 !important;
+}
+
+/* selectbox 화살표 */
+div[data-baseweb="select"] svg {
+  color: #8fb0c3 !important;
+  fill: #8fb0c3 !important;
+}
+
+/* 펼쳐진 드롭다운 전체 */
+div[data-baseweb="popover"],
+div[data-baseweb="popover"] div,
+div[data-baseweb="popover"] ul,
+div[data-baseweb="popover"] li,
+div[data-baseweb="menu"],
+div[data-baseweb="menu"] div,
+div[data-baseweb="menu"] ul,
+div[data-baseweb="menu"] li {
+  background-color: #10283a !important;
+  color: #e8f6ff !important;
+  -webkit-text-fill-color: #e8f6ff !important;
+}
+
+/* 드롭다운 option */
+div[role="option"],
+div[role="option"] *,
+li[role="option"],
+li[role="option"] *,
+ul[role="listbox"],
+ul[role="listbox"] *,
+[role="listbox"],
+[role="listbox"] * {
+  background-color: #10283a !important;
+  color: #e8f6ff !important;
+  -webkit-text-fill-color: #e8f6ff !important;
+}
+
+/* hover / 선택된 option */
+div[role="option"]:hover,
+li[role="option"]:hover,
+div[role="option"][aria-selected="true"],
+li[role="option"][aria-selected="true"] {
+  background-color: rgba(32, 217, 135, 0.22) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* hover / 선택된 option 내부 글자 */
+div[role="option"]:hover *,
+li[role="option"]:hover *,
+div[role="option"][aria-selected="true"] *,
+li[role="option"][aria-selected="true"] * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}

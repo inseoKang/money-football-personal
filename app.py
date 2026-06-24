@@ -9,6 +9,7 @@ from views.coach import vs_squad as coach_vs_squad
 from views.coach import dashboard as coach_dashboard
 from views.scouter import search as scout_search
 from views.scouter import result as scout_result
+from views.scouter import market_dashboard as scout_market_dashboard
 
 
 st.set_page_config(
@@ -26,6 +27,7 @@ PAGES = {
     "coach_dashboard": coach_dashboard.render,
     "scout_search": scout_search.render,
     "scout_result": scout_result.render,
+    "scout_market_dashboard": scout_market_dashboard.render,
 }
 
 

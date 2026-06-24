@@ -47,6 +47,26 @@ def _grade(score):
     return "D"
 
 
+def _empty_team_metrics():
+    """
+    아직 라인업에 선수가 한 명도 배치되지 않았을 때 반환할 기본 지표입니다.
+
+    빈 라인업 상태에서는 좌우 밸런스, 선수 시너지, 팀 종합 점수 모두
+    평가할 수 없으므로 0으로 처리합니다.
+    """
+    return {
+        "team_score": 0,
+        "grade": "D",
+        "attack": 0,
+        "midfield": 0,
+        "defense": 0,
+        "keeper": 0,
+        "position_fit": 0,
+        "balance": 0,
+        "synergy": 0,
+    }
+
+
 def calculate_team_metrics(players_df, formation, lineup):
     formation_slots = get_formation_slots(formation)
 
@@ -90,17 +110,29 @@ def calculate_team_metrics(players_df, formation, lineup):
         elif slot_id.startswith("R"):
             right_scores.append(fit_score)
 
+    # 핵심 수정:
+    # 실제로 배치된 선수가 한 명도 없으면 모든 지표를 0으로 반환합니다.
+    # 기존에는 balance 기본값 75 때문에 빈 라인업에서도
+    # synergy 15, team_score 약 4점이 계산되는 문제가 있었습니다.
+    if not position_fit_scores:
+        return _empty_team_metrics()
+
     attack = _average(attack_scores)
     midfield = _average(midfield_scores)
     defense = _average(defense_scores)
     keeper = _average(keeper_scores)
     position_fit = _average(position_fit_scores)
 
+    # 좌우 양쪽에 선수가 모두 있어야 좌우 밸런스를 계산합니다.
+    # 한쪽만 있거나 양쪽 모두 없으면 아직 밸런스를 평가할 수 없으므로 0점 처리합니다.
     if left_scores and right_scores:
         balance = 100 - abs(_average(left_scores) - _average(right_scores))
     else:
-        balance = 75
+        balance = 0
 
+    balance = max(0, min(100, balance))
+
+    # 시너지는 실제 배치된 선수들의 포지션 적합도, 밸런스, 중원/수비 지표를 기반으로 계산합니다.
     synergy = round(
         (position_fit * 0.5)
         + (balance * 0.2)
@@ -108,6 +140,8 @@ def calculate_team_metrics(players_df, formation, lineup):
         + (defense * 0.15),
         2,
     )
+
+    synergy = max(0, min(100, synergy))
 
     team_score = round(
         (attack * 0.25)
@@ -120,6 +154,8 @@ def calculate_team_metrics(players_df, formation, lineup):
         2,
     )
 
+    team_score = max(0, min(100, team_score))
+
     return {
         "team_score": team_score,
         "grade": _grade(team_score),
@@ -129,29 +165,36 @@ def calculate_team_metrics(players_df, formation, lineup):
         "keeper": keeper,
         "position_fit": position_fit,
         "balance": round(balance, 2),
-        "synergy": synergy,
+        "synergy": round(synergy, 2),
     }
 
 
 def build_recommendation_text(metrics):
+    # 빈 라인업 상태에서는 약점 분석 문구를 띄우지 않습니다.
+    if not metrics or safe_number(metrics, "team_score", 0) == 0:
+        return (
+            "아직 선택된 선수가 없습니다. "
+            "포지션 슬롯을 클릭해 선수를 배치하면 팀 지표와 추천 개선 사항이 표시됩니다."
+        )
+
     metric_labels = {
-        "attack": "attack power",
-        "midfield": "midfield control",
-        "defense": "defensive stability",
-        "keeper": "goalkeeper stability",
-        "position_fit": "position fit",
-        "balance": "left-right balance",
-        "synergy": "team synergy",
+        "attack": "공격 기대값",
+        "midfield": "중원 장악력",
+        "defense": "수비 안정성",
+        "keeper": "골키퍼 안정성",
+        "position_fit": "포지션 적합도",
+        "balance": "좌우 밸런스",
+        "synergy": "선수 시너지",
     }
 
     advice = {
-        "attack": "Add or move players with stronger finishing, shooting volume, and goal contribution.",
-        "midfield": "Use midfielders with strong stamina and two-way contribution to connect defense and attack.",
-        "defense": "Prioritize defenders with stronger interception and tackle profiles.",
-        "keeper": "Check goalkeeper form and consider a more stable keeper if clean-sheet or save numbers are weak.",
-        "position_fit": "Revisit whether each player is placed in a role that matches his position group.",
-        "balance": "The side balance is uneven, so reinforce the weaker side or adjust wide roles.",
-        "synergy": "The lineup needs a better mix between midfield, defense, and role fit.",
+        "attack": "마무리 능력, 슈팅 생산성, 득점 기여도가 높은 공격 자원을 보강하거나 전진 배치하는 것이 좋습니다.",
+        "midfield": "활동량과 공수 연결 능력이 좋은 미드필더를 중심으로 중원 구성을 조정하는 것이 좋습니다.",
+        "defense": "태클, 인터셉트, 수비 집중력이 높은 수비수를 우선적으로 배치하는 것이 좋습니다.",
+        "keeper": "선방 능력과 안정성이 높은 골키퍼를 확인하고, 필요하다면 골키퍼 교체를 고려하는 것이 좋습니다.",
+        "position_fit": "선수들이 각자의 강점과 맞는 포지션에 배치되어 있는지 다시 확인하는 것이 좋습니다.",
+        "balance": "좌우 전력 균형이 맞지 않습니다. 약한 측면을 보강하거나 측면 역할을 조정하는 것이 좋습니다.",
+        "synergy": "선수 간 조합이 아직 충분히 안정적이지 않습니다. 중원, 수비, 포지션 적합도의 균형을 함께 조정하는 것이 좋습니다.",
     }
 
     target_keys = list(metric_labels.keys())
@@ -159,6 +202,6 @@ def build_recommendation_text(metrics):
     weakest_label = metric_labels[weakest_key]
 
     return (
-        f"The main tactical concern in this lineup is {weakest_label}. "
+        f"현재 라인업에서 가장 보완이 필요한 부분은 {weakest_label}입니다. "
         f"{advice[weakest_key]}"
     )
