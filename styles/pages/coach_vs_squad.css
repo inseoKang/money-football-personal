@@ -95,8 +95,9 @@
     color: #dff5ff;
 }
 
-/* 기본 버튼 */
-.stButton > button {
+/* VS 기본 버튼 */
+.vs-control-section .stButton > button,
+.delta-row + div .stButton > button {
     border-radius: 12px;
     min-height: 2.35rem;
     font-weight: 850;

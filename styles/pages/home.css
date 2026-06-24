@@ -199,25 +199,8 @@
     z-index: 2;
 }
 
-/* 카드 아래 버튼을 카드 하단처럼 보이게 */
-div[data-testid="stButton"] > button {
-    border-radius: 0 0 24px 24px;
-    min-height: 3rem;
-    font-size: .86rem;
-    font-weight: 950;
-    border: 1px solid rgba(32, 217, 135, 0.35);
-    border-top: 0;
-    background: linear-gradient(90deg, #20d987, #22d3ee);
-    color: #062016;
-    transition: transform .16s ease, filter .16s ease;
-}
-
-div[data-testid="stButton"] > button:hover {
-    filter: brightness(1.06);
-    transform: translateY(-1px);
-    color: #062016;
-    border-color: rgba(32, 217, 135, 0.55);
-}
+/* 홈 화면 버튼은 전역 오염을 막기 위해 components.css의 기본 버튼 스타일을 사용합니다.
+   특정 페이지 버튼을 건드리지 않도록 여기서는 stButton 전역 선택자를 사용하지 않습니다. */
 
 @media (max-width: 900px) {
     .home-summary-grid {
