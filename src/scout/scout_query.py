@@ -5,6 +5,13 @@ from __future__ import annotations
 from pathlib import Path
 
 from src.scout.scout_features import DEFAULT_VIEW_PATH, parse_bool, parse_float, read_csv_rows
+from src.scout.similarity import (
+    POSITION_SCOPE_OPTIONS,
+    SIMILARITY_FOCUS_OPTIONS,
+    build_player_feature_vector,
+    calculate_similarity_score,
+    find_similar_players,
+)
 
 
 ROLE_SCORE_COLUMNS = {
@@ -144,6 +151,30 @@ def get_position_scope_options() -> list[dict[str, str]]:
 def load_scout_player_view(path: str | Path = DEFAULT_VIEW_PATH) -> list[dict[str, str]]:
     """Load the processed scout player view."""
     return read_csv_rows(path)
+
+
+def get_player_search_options(keyword: str, limit: int = 20) -> list[dict[str, object]]:
+    """Return player autocomplete options for Button 2 from Azure Blob assets."""
+    from src.scout.salary_value import get_salary_value_service
+
+    return get_salary_value_service().get_player_search_options(keyword, limit=limit)
+
+
+def evaluate_player_value(
+    player_id: str | None = None,
+    player_name: str | None = None,
+    include_shap: bool = True,
+    top_features: int = 5,
+) -> dict[str, object]:
+    """Evaluate one player's salary value for Button 2 using Blob model assets."""
+    from src.scout.salary_value import get_salary_value_service
+
+    return get_salary_value_service().evaluate_player_value(
+        player_id=player_id,
+        player_name=player_name,
+        include_shap=include_shap,
+        top_features=top_features,
+    )
 
 
 def get_advanced_filter_schema(
