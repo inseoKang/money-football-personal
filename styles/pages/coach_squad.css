@@ -1,0 +1,99 @@
+/* 상단 포메이션/액션 버튼 영역 */
+.squad-control-label {
+    color: #8fb0c3;
+    font-size: .78rem;
+    font-weight: 800;
+    margin-bottom: .35rem;
+}
+
+.squad-control-spacer {
+    height: .35rem;
+}
+
+/* 선수 목록을 더 촘촘하게 */
+.player-card {
+    padding: .55rem .62rem !important;
+    gap: .45rem !important;
+    min-height: 74px;
+}
+
+.player-card .avatar {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    font-size: .68rem !important;
+}
+
+.player-main {
+    min-width: 0;
+}
+
+.player-title {
+    font-size: .78rem !important;
+    line-height: 1.15 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-title span {
+    font-size: .62rem !important;
+}
+
+.player-sub {
+    font-size: .64rem !important;
+    line-height: 1.22 !important;
+}
+
+.score-pill {
+    min-width: 34px !important;
+    padding: .22rem .38rem !important;
+    font-size: .7rem !important;
+}
+
+.drag-dot {
+    display: none !important;
+}
+
+.selected-pill {
+    font-size: .58rem !important;
+    padding: .14rem .34rem !important;
+}
+
+/* 오른쪽 세부 지표 텍스트/숫자 크기 키우기 */
+.metric-row {
+    margin-bottom: 1.05rem;
+}
+
+.metric-label {
+    font-size: .9rem !important;
+    line-height: 1.35 !important;
+    margin-bottom: .42rem !important;
+}
+
+.metric-label span {
+    font-size: .9rem !important;
+    font-weight: 700 !important;
+}
+
+.metric-label b {
+    font-size: .95rem !important;
+    font-weight: 900 !important;
+}
+
+/* 선수 목록 내부 버튼을 작게 */
+div[data-testid="stVerticalBlock"] div[data-testid="stButton"] > button {
+    min-height: 2.15rem;
+}
+
+/* 상세 모달 배경 정리 */
+div[data-testid="stDialog"] div[role="dialog"] {
+    background: #0b1b29 !important;
+    color: #e8f6ff !important;
+}
+
+div[data-testid="stDialog"] h2,
+div[data-testid="stDialog"] p,
+div[data-testid="stDialog"] label {
+    color: #e8f6ff !important;
+}

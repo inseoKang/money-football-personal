@@ -44,7 +44,7 @@ def recommend_lineup(formation_name, tactic="balanced"):
                 "y": slot["y"],
                 "player": None,
                 "score": None,
-                "reason": f"{slot_id}({role}) ?먮━???좏깮 媛?ν븳 ?좎닔媛 ?놁뒿?덈떎.",
+                "reason": f"{slot_id}({role}) 자리에 선택 가능한 선수가 없습니다.",
             })
             continue
 
@@ -73,8 +73,8 @@ def recommend_lineup(formation_name, tactic="balanced"):
             },
             "score": float(best_player["coach_score"]),
             "reason": (
-                f"{slot_id}({role}) ?먮━?먯꽌 {tactic} ?꾩닠 湲곗? "
-                "?먯닔媛 媛???믪뒿?덈떎."
+                f"{slot_id}({role}) 자리에서 {tactic} 전술 기준 "
+                "점수가 가장 높습니다."
             ),
         })
 

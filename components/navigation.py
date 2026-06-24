@@ -11,11 +11,14 @@ COACH_PAGES = {
 
 SCOUT_PAGES = {
     "스카우팅 검색": "scout_search",
-    "스카우팅 결과": "scout_result",
+    "전체 선수 시장 대시보드": "scout_market_dashboard",
 }
 
 COACH_PAGE_KEYS = set(COACH_PAGES.values())
-SCOUT_PAGE_KEYS = set(SCOUT_PAGES.values())
+
+# scout_result는 사이드바에는 보이지 않지만,
+# 검색 조건 설정 후 결과 페이지로 이동할 수 있어야 하므로 모드 판별에는 포함합니다.
+SCOUT_PAGE_KEYS = set(SCOUT_PAGES.values()) | {"scout_result"}
 
 
 def infer_mode_from_page(page_key: str | None) -> str | None:
@@ -54,7 +57,7 @@ def render_sidebar_navigation() -> None:
     with st.sidebar:
         st.markdown("## Money Football")
 
-        if st.button("🏠 메인", use_container_width=True):
+        if st.button("🏠 메인", width="stretch"):
             move_page("home")
             st.rerun()
 
@@ -73,12 +76,8 @@ def render_sidebar_navigation() -> None:
             is_active = st.session_state.current_page == page_key
             button_label = f"✅ {label}" if is_active else label
 
-            if st.button(button_label, use_container_width=True):
+            if st.button(button_label, width="stretch"):
                 move_page(page_key)
                 st.rerun()
 
         st.divider()
-
-        if st.button("🔄 모드 다시 선택", use_container_width=True):
-            move_page("home")
-            st.rerun()
