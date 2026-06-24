@@ -1,10 +1,27 @@
-from pathlib import Path
+from src.constants import (
+    BARCELONA_PLAYERS_CSV_PATH,
+    MANAGER_PLAYERS_CSV_PATH,
+)
 
+MANAGER_PLAYERS_FILE = MANAGER_PLAYERS_CSV_PATH
+BARCELONA_PLAYERS_FILE = BARCELONA_PLAYERS_CSV_PATH
 
-BASE_DIR = Path(__file__).resolve().parents[2]
+BARCELONA_CLUB_ALIASES = {
+    "barcelona",
+    "fc barcelona",
+    "barca",
+    "barça",
+    "바르셀로나",
+}
 
-PLAYERS_FILE = BASE_DIR / "data" / "sample_players.csv"
-MANAGER_PLAYERS_FILE = BASE_DIR / "data" / "manager_players.csv"
+LALIGA_KEYWORDS = [
+    "la liga",
+    "laliga",
+    "primera division",
+    "primera división",
+    "스페인",
+    "라리가",
+]
 
 COLUMN_MAP = {
     "player_id": "salary_id",
