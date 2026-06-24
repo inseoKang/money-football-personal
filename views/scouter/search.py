@@ -10,6 +10,7 @@ from components.navigation import move_page
 from src.data_loader import load_scout_players
 from src.scout.scout_query import (
     get_advanced_filter_schema,
+    get_player_search_options,
     get_position_scope_options,
     get_role_options,
     get_similarity_focus_options,
@@ -170,6 +171,45 @@ def _player_options(players) -> list[dict[str, str]]:
         )
 
     return options
+
+
+def _value_player_options(players) -> list[dict[str, str]]:
+    """Return Button 2 player options from the salary-value backend source.
+
+    Button 2 uses Azure Blob + ONNX model assets for evaluation, so its
+    frontend player list should come from the same backend dataset. If Azure is
+    not configured in local development, fall back to the processed local scout
+    CSV so the page can still render.
+    """
+    try:
+        blob_options = get_player_search_options("", limit=5000)
+
+        normalized_options = []
+
+        for option in blob_options:
+            player_id = str(option.get("player_id") or "")
+            label = str(option.get("label") or "")
+
+            if not player_id or not label:
+                continue
+
+            normalized_options.append(
+                {
+                    "value": player_id,
+                    "label": label,
+                }
+            )
+
+        if normalized_options:
+            return normalized_options
+
+    except Exception as exc:
+        st.caption(
+            "Azure 선수 목록을 불러오지 못해 로컬 scout_player_view_2526.csv 기준 목록을 사용합니다. "
+            f"배포 환경에서는 Azure Blob 설정을 확인해 주세요. 상세: {exc}"
+        )
+
+    return _player_options(players)
 
 
 def _dict_option_label(options: list[dict[str, str]], value: str) -> str:
@@ -353,10 +393,10 @@ def _render_role_based_form(players) -> dict:
 
 
 def _render_value_form(players) -> dict:
-    options = _player_options(players)
+    options = _value_player_options(players)
 
     if not options:
-        st.error("선수 데이터가 비어 있습니다. data/processed/scout_player_view_2526.csv를 확인해 주세요.")
+        st.error("선수 데이터가 비어 있습니다. Azure Blob 또는 data/processed/scout_player_view_2526.csv를 확인해 주세요.")
         return {
             "search_type": "value",
             "intent_label": INTENTS["value"]["title"],
@@ -373,32 +413,9 @@ def _render_value_form(players) -> dict:
         key="value_player_label",
     )
 
-    c1, c2, c3 = st.columns(3)
-
-    with c1:
-        metric_focus = st.selectbox(
-            "중점 지표",
-            list(METRIC_FOCUS_LABELS),
-            format_func=lambda key: METRIC_FOCUS_LABELS[key],
-            key="value_metric_focus",
-        )
-
-    with c2:
-        comparison_scope = st.selectbox(
-            "비교 범위",
-            list(COMPARISON_SCOPE_LABELS),
-            format_func=lambda key: COMPARISON_SCOPE_LABELS[key],
-            key="value_comparison_scope",
-        )
-
-    with c3:
-        min_minutes = st.number_input(
-            "최소 출전 시간 경고 기준",
-            min_value=0,
-            value=0,
-            step=100,
-            key="value_min_minutes",
-        )
+    st.caption(
+        "이 기능은 Azure Blob의 스카우터 백엔드 데이터셋과 ONNX 연봉 예측 모델을 기준으로 평가합니다."
+    )
 
     return {
         "search_type": "value",
@@ -406,9 +423,9 @@ def _render_value_form(players) -> dict:
         "request": INTENTS["value"]["request"],
         "player_id": label_to_value[selected_label],
         "player_label": selected_label,
-        "metric_focus": metric_focus,
-        "comparison_scope": comparison_scope,
-        "min_minutes": None if int(min_minutes) <= 0 else int(min_minutes),
+        "metric_focus": "model",
+        "comparison_scope": "model_dataset",
+        "min_minutes": None,
         "note": "",
     }
 
@@ -805,7 +822,6 @@ def render() -> None:
             <h2>어떤 방식으로 선수를 찾을까요?</h2>
             <p>
                 아래 카드에서 탐색 방식을 선택한 뒤 조건을 입력하세요.
-                마지막 카드는 유망주 검색이 아니라 세밀 조건 검색입니다.
             </p>
         </div>
         """,

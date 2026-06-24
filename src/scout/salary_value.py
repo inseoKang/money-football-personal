@@ -94,17 +94,23 @@ class SalaryValueService:
         )
         return cls(backend_rows, onnx_rows, assets)
 
-    def get_player_search_options(self, keyword: str, limit: int = 20) -> list[dict[str, object]]:
-        """Return lightweight player options for frontend autocomplete."""
-        needle = keyword.strip().lower()
-        if not needle:
-            return []
+    def get_player_search_options(self, keyword: str = "", limit: int = 20) -> list[dict[str, object]]:
+        """Return lightweight player options for frontend autocomplete/selectbox.
+
+        If keyword is blank, return the first `limit` players from the same
+        backend dataset used by the salary-value model. This keeps Button 2
+        frontend selection and backend evaluation aligned.
+        """
+        needle = str(keyword or "").strip().lower()
 
         results: list[dict[str, object]] = []
+
         for row in self.backend_rows:
             name = row.get("player_name", "")
-            if needle not in name.lower():
+
+            if needle and needle not in name.lower():
                 continue
+
             results.append(
                 {
                     "player_id": row.get("player_id", ""),
@@ -116,8 +122,10 @@ class SalaryValueService:
                     "label": _player_label(row),
                 }
             )
+
             if len(results) >= limit:
                 break
+
         return results
 
     def evaluate_player_value(
