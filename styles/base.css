@@ -174,3 +174,36 @@ li[role="option"][aria-selected="true"] * {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
+
+/* ================================
+   Global layout stabilizer
+   ================================ */
+.block-container {
+  width: min(100%, 1520px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+hr {
+  border-color: rgba(120, 220, 255, 0.12) !important;
+}
+
+/* Streamlit dataframe dark wrapper */
+div[data-testid="stDataFrame"] {
+  border: 1px solid rgba(120, 220, 255, 0.15) !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  background: rgba(15, 34, 49, 0.82) !important;
+}
+
+div[data-testid="stDataFrame"] iframe,
+div[data-testid="stDataFrame"] canvas {
+  border-radius: 16px !important;
+}
+
+/* number input +/- buttons */
+button[aria-label="Add"],
+button[aria-label="Subtract"] {
+  background: rgba(255,255,255,0.08) !important;
+  color: #e8f6ff !important;
+}

@@ -97,3 +97,19 @@ div[data-testid="stDialog"] p,
 div[data-testid="stDialog"] label {
     color: #e8f6ff !important;
 }
+
+
+/* 내 스쿼드: 상단 필터 버튼이 Scout 카드 스타일의 영향을 받지 않도록 고정 */
+.squad-control-label + div[data-testid="stHorizontalBlock"] .stButton > button,
+.squad-control-spacer ~ div .stButton > button {
+    min-height: 2.35rem !important;
+    border-radius: 12px !important;
+    padding: 0.35rem 0.45rem !important;
+    white-space: nowrap !important;
+}
+
+/* 선수 목록 컨테이너 내부 여백 안정화 */
+div[data-testid="stVerticalBlockBorderWrapper"] .player-card {
+    margin-top: 0.35rem !important;
+    margin-bottom: 0.18rem !important;
+}

@@ -6,25 +6,49 @@ from collections.abc import Iterable
 
 
 COLUMN_ALIASES: dict[str, list[str]] = {
-    "player_name": ["player_name", "Player", "Name"],
+    "player_name": ["player_name", "Player", "Name", "name"],
     "age": ["age", "Age"],
     "nation": ["nation", "Nation"],
-    "team": ["team", "Squad"],
+    "team": ["team", "Squad", "club"],
     "league": ["league", "Comp"],
     "position": ["position", "Pos"],
     "position_group": ["position_group", "Position Group"],
+
     "minutes": ["minutes", "Min"],
     "nineties": ["nineties", "90s"],
-    "salary_eur": ["salary_eur", "Salary", "salary"],
-    "predicted_salary_eur": ["predicted_salary_eur", "Predicted Salary"],
-    "value_score": ["value_score", "Value Score"],
-    "overall_score": ["overall_score", "Overall"],
+
+    "salary_eur": [
+        "salary_eur",
+        "salary_annual_gross_eur",
+        "current_salary_annual_gross_eur",
+        "Salary",
+        "salary",
+    ],
+    "predicted_salary_eur": [
+        "predicted_salary_eur",
+        "predicted_next_salary_annual_gross_eur",
+        "Predicted Salary",
+    ],
+
+    "value_score": ["value_score", "salary_value_score", "Value Score"],
+    "overall_score": ["overall_score", "overall_role_score", "Overall"],
+
     "attack_score": ["attack_score", "Attack"],
-    "passing_score": ["passing_score", "Passing"],
-    "midfield_score": ["midfield_score", "Midfield"],
-    "defense_score": ["defense_score", "Defense"],
-    "physical_score": ["physical_score", "Physical"],
-    "gk_score": ["gk_score", "GK"],
+    "passing_score": [
+        "passing_score",
+        "creative_pass_score",
+        "progressive_pass_score",
+        "Passing",
+    ],
+    "midfield_score": [
+        "midfield_score",
+        "build_up_score",
+        "progressive_pass_score",
+        "Midfield",
+    ],
+    "defense_score": ["defense_score", "defensive_action_score", "Defense"],
+    "physical_score": ["physical_score", "pressing_score", "aerial_defense_score", "Physical"],
+    "gk_score": ["gk_score", "goalkeeper_score", "GK"],
 }
 
 
