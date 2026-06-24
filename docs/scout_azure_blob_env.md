@@ -7,7 +7,7 @@
 ```text
 container: money-football-data
 
-02_scout_app/
+01_scout_app/
   scouter_backend_player_dataset_2025_2026.csv
 
 03_scout_model_input/
@@ -25,7 +25,7 @@ container: money-football-data
 AZURE_STORAGE_CONNECTION_STRING=<do not commit>
 AZURE_STORAGE_CONTAINER_NAME=money-football-data
 
-SCOUT_BACKEND_DATASET_BLOB=02_scout_app/scouter_backend_player_dataset_2025_2026.csv
+SCOUT_BACKEND_DATASET_BLOB=01_scout_app/scouter_backend_player_dataset_2025_2026.csv
 SCOUT_ONNX_INPUT_DATASET_BLOB=03_scout_model_input/scouter_onnx_salary_model_input_2025_2026.csv
 
 SALARY_MODEL_CONFIG_BLOB=04_model/model_config.json
@@ -38,7 +38,7 @@ string and container name are strictly required in local development.
 
 ## Asset Roles
 
-- `02_scout_app/scouter_backend_player_dataset_2025_2026.csv`
+- `01_scout_app/scouter_backend_player_dataset_2025_2026.csv`
   - 화면 표시, 검색, API 응답, 유사 선수 탐색 기준 데이터셋.
 - `03_scout_model_input/scouter_onnx_salary_model_input_2025_2026.csv`
   - ONNX 모델에 통과시키는 24개 feature 입력 데이터셋.
@@ -51,7 +51,7 @@ string and container name are strictly required in local development.
 
 ## Important Contract
 
-현재 `02_scout_app` CSV와 `03_scout_model_input` CSV는 같은 원천에서 같은 순서로 생성되었다는 전제로 row index를 맞춘다.
+현재 `01_scout_app` CSV와 `03_scout_model_input` CSV는 같은 원천에서 같은 순서로 생성되었다는 전제로 row index를 맞춘다.
 
 장기적으로는 모델 입력 CSV에도 `player_id`를 포함한 별도 매핑 파일을 두는 방식이 더 안전하다. 단, ONNX에 넣는 실제 입력은 `model_config.json`의 `all_feature_columns` 24개만 사용해야 한다.
 
