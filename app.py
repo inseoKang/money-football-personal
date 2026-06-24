@@ -10,6 +10,7 @@ from views.coach import dashboard as coach_dashboard
 from views.scouter import search as scout_search
 from views.scouter import result as scout_result
 from views.scouter import market_dashboard as scout_market_dashboard
+from views.dev import azure_connection_test
 
 
 st.set_page_config(
@@ -28,6 +29,7 @@ PAGES = {
     "scout_search": scout_search.render,
     "scout_result": scout_result.render,
     "scout_market_dashboard": scout_market_dashboard.render,
+    "azure_connection_test": azure_connection_test.render,
 }
 
 
