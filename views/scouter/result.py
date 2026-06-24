@@ -212,8 +212,8 @@ def _condition_summary(conditions: dict) -> None:
         chips.extend(
             [
                 f"선수: {conditions.get('player_label', conditions.get('player_id', '-'))}",
-                f"중점 지표: {METRIC_FOCUS_LABELS.get(conditions.get('metric_focus'), conditions.get('metric_focus', '-'))}",
-                f"비교 범위: {COMPARISON_SCOPE_LABELS.get(conditions.get('comparison_scope'), conditions.get('comparison_scope', '-'))}",
+                "평가 방식: Azure ONNX 연봉 예측 모델",
+                "설명: SHAP 기반 주요 영향 요인 표시",
             ]
         )
     elif search_type == "similar":

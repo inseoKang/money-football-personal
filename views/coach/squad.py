@@ -427,6 +427,9 @@ def render() -> None:
             ai_comment=result.get("aiComment", ""),
             warnings=result.get("warnings", []),
             title="⚽ AI 감독 코멘트",
+            comment_source=result.get("commentSource"),
+            comment_error=result.get("commentError"),
+            prompt_preview=result.get("promptPreview"),
         )
 
     slot_id = st.query_params.get("slot")

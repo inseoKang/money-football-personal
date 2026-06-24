@@ -23,8 +23,8 @@ AZURE_STORAGE_CONTAINER
 권장 추가 설정:
 
 ```text
-SCOUT_BACKEND_DATASET_BLOB=01_scout_app/scouter_backend_player_dataset_2025_2026.csv
-COACH_BACKEND_DATASET_BLOB=02_coach_app/coach_players_25_26_v1.csv
+COACH_BACKEND_DATASET_BLOB=01_coach_app/coach_players_25_26_v1.csv
+SCOUT_BACKEND_DATASET_BLOB=02_scout_app/scouter_backend_player_dataset_2025_2026.csv
 SCOUT_ONNX_INPUT_DATASET_BLOB=03_scout_model_input/scouter_onnx_salary_model_input_2025_2026.csv
 SALARY_ONNX_MODEL_BLOB=04_model/salary_prediction_model.onnx
 ```
@@ -52,8 +52,8 @@ python -m streamlit run app.py --server.port 8000 --server.address 0.0.0.0
 ```text
 container: money-football-data
 
-01_scout_app/
-02_coach_app/
+01_coach_app/
+02_scout_app/
 03_scout_model_input/
 04_model/
 ```
@@ -61,8 +61,8 @@ container: money-football-data
 현재 코드/문서에서 사용하는 대표 경로:
 
 ```text
-01_scout_app/scouter_backend_player_dataset_2025_2026.csv
-02_coach_app/coach_players_25_26_v1.csv
+01_coach_app/scouter_backend_player_dataset_2025_2026.csv
+02_scout_app/coach_players_25_26_v1.csv
 03_scout_model_input/scouter_onnx_salary_model_input_2025_2026.csv
 04_model/salary_prediction_model.onnx
 ```

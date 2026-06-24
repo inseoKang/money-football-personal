@@ -638,6 +638,9 @@ def render() -> None:
             ai_comment=left_payload.get("aiComment", ""),
             warnings=left_payload.get("warnings", []),
             title="Barcelona 코멘트",
+            comment_source=left_payload.get("commentSource"),
+            comment_error=left_payload.get("commentError"),
+            prompt_preview=left_payload.get("promptPreview"),
         )
 
     with right_metrics:
@@ -649,4 +652,7 @@ def render() -> None:
             ai_comment=right_payload.get("aiComment", ""),
             warnings=right_payload.get("warnings", []),
             title="상대 팀 코멘트",
+            comment_source=right_payload.get("commentSource"),
+            comment_error=right_payload.get("commentError"),
+            prompt_preview=right_payload.get("promptPreview"),
         )
