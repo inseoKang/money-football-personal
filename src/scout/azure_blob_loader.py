@@ -15,7 +15,7 @@ from pathlib import Path
 DEFAULT_CONTAINER_ENV = "AZURE_STORAGE_CONTAINER_NAME"
 DEFAULT_CONNECTION_ENV = "AZURE_STORAGE_CONNECTION_STRING"
 
-DEFAULT_SCOUT_BACKEND_DATASET_BLOB = "02_scout_app/scouter_backend_player_dataset_2025_2026.csv"
+DEFAULT_SCOUT_BACKEND_DATASET_BLOB = "01_scout_app/scouter_backend_player_dataset_2025_2026.csv"
 DEFAULT_SCOUT_ONNX_INPUT_DATASET_BLOB = (
     "03_scout_model_input/scouter_onnx_salary_model_input_2025_2026.csv"
 )
