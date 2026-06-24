@@ -1,0 +1,16 @@
+number,name,position,detail_position,height,club,nation,attack_score,midfield_score,defense_score,pace_score,physical_score,stamina_score,gk_score,market_value,image_path,comment
+4,Kim Minjae,DF,CB,190,Bayern Munich,Korea,52,67,90,76,88,84,10,60000000,assets/players/kim_minjae.png,강한 피지컬과 수비 안정성이 뛰어난 센터백입니다.
+7,Son Heungmin,FW,LW,183,Tottenham,Korea,93,76,42,89,74,82,8,45000000,assets/players/son_heungmin.png,결정력과 속도를 바탕으로 측면과 최전방을 모두 소화할 수 있습니다.
+18,Lee Kangin,MF,AM,173,PSG,Korea,78,86,55,76,65,77,7,25000000,assets/players/lee_kangin.png,창의적인 패스와 킥 능력이 좋은 공격형 미드필더입니다.
+6,Hwang Inbeom,MF,CM,177,Feyenoord,Korea,70,83,68,74,70,85,7,12000000,assets/players/hwang_inbeom.png,공수 연결과 템포 조절에 강점이 있는 중앙 미드필더입니다.
+9,Cho Guesung,FW,ST,188,Midtjylland,Korea,81,62,48,68,83,78,8,6000000,assets/players/cho_guesung.png,제공권과 박스 안 마무리에 강점이 있는 타깃형 스트라이커입니다.
+22,Seol Youngwoo,DF,RB,180,Crvena Zvezda,Korea,61,70,79,82,73,86,7,4500000,assets/players/seol_youngwoo.png,좌우 풀백을 모두 소화할 수 있는 활동량 좋은 수비수입니다.
+21,Jo Hyeonwoo,GK,GK,189,Ulsan HD,Korea,15,35,58,47,75,70,85,1200000,assets/players/jo_hyeonwoo.png,반사신경과 선방 능력이 안정적인 골키퍼입니다.
+11,Hwang Heechan,FW,RW,177,Wolves,Korea,84,70,50,86,78,80,7,22000000,assets/players/hwang_heechan.png,저돌적인 돌파와 압박 능력을 갖춘 공격수입니다.
+8,Paik Seungho,MF,CM,182,Birmingham,Korea,68,82,70,73,72,83,8,3500000,assets/players/paik_seungho.png,중원에서 안정적인 패스와 수비 가담이 가능한 선수입니다.
+15,Jung Wooyoung,DF,CB,186,Ulsan HD,Korea,43,61,80,65,82,76,9,1000000,assets/players/jung_wooyoung.png,경험과 위치 선정이 좋은 수비형 자원입니다.
+3,Kim Jinsu,DF,LB,177,Jeonbuk,Korea,58,69,78,76,71,79,7,800000,assets/players/kim_jinsu.png,오버래핑과 크로스가 가능한 왼쪽 풀백입니다.
+10,Lee Jaesung,MF,AM,180,Mainz,Korea,76,81,65,74,71,87,7,6000000,assets/players/lee_jaesung.png,"활동량과 전방 압박, 연계 플레이가 좋은 2선 자원입니다."
+5,Park Yongwoo,MF,DM,186,Al Ain,Korea,55,73,77,66,79,78,8,1500000,assets/players/park_yongwoo.png,수비 보호와 제공권에 강점이 있는 수비형 미드필더입니다.
+2,Kim Moonhwan,DF,RB,173,Daejeon,Korea,59,68,76,80,69,81,7,900000,assets/players/kim_moonhwan.png,빠른 스피드와 활동량이 좋은 오른쪽 풀백입니다.
+14,Hong Hyunseok,MF,CM,177,Gent,Korea,72,80,64,75,68,82,7,7000000,assets/players/hong_hyunseok.png,전진 패스와 공격 가담이 좋은 중앙 미드필더입니다.
