@@ -55,6 +55,9 @@ def render_metrics_panel(
     warnings: list[str] | None = None,
     *,
     title: str = "⚽ AI 감독 코멘트",
+    comment_source: str | None = None,
+    comment_error: str | None = None,
+    prompt_preview: str | None = None,
 ) -> None:
     warnings = warnings or []
 
@@ -72,6 +75,22 @@ def render_metrics_panel(
                 f"현재 {formation} 라인업은 팀 종합 점수 {metrics.get('team_score', 0)}점입니다. "
                 "포지션 적합도와 좌우 밸런스를 함께 고려한 추천 결과입니다."
             )
+
+        if comment_source or comment_error or prompt_preview:
+            with st.expander("AI 코멘트 디버그 정보", expanded=False):
+                if comment_source:
+                    st.caption(f"commentSource: {comment_source}")
+
+                if comment_error:
+                    st.caption(f"commentError: {comment_error}")
+
+                if prompt_preview:
+                    st.text_area(
+                        "promptPreview",
+                        value=str(prompt_preview),
+                        height=180,
+                        disabled=True,
+                    )
 
         if warnings:
             with st.expander("라인업 경고 확인"):

@@ -5,7 +5,7 @@ from src.coach.formation_run import get_available_formations, get_formation_slot
 from src.coach.formations import ROLE_ALIASES
 from src.coach.metrics import build_recommendation_text
 from src.coach.player_data import load_manager_players
-from src.coach.scoring import role_score
+from src.coach.scoring import is_position_compatible, role_score
 
 
 PLAYER_CARD_COLUMNS = [
@@ -31,6 +31,32 @@ PLAYER_CARD_COLUMNS = [
 
 def _candidate_positions(role: str) -> list[str]:
     return ROLE_ALIASES.get(role, [role])
+
+
+def _get_role_candidates(players, role: str, used_salary_ids: set):
+    available_players = players[
+        ~players["salary_id"].isin(used_salary_ids)
+    ].copy()
+
+    if available_players.empty:
+        return available_players
+
+    compatible_candidates = available_players[
+        available_players.apply(
+            lambda player: is_position_compatible(player, role),
+            axis=1,
+        )
+    ].copy()
+
+    if not compatible_candidates.empty:
+        return compatible_candidates
+
+    # RW/LW/ST 같은 공격 슬롯은 전문 포지션 후보가 없어도
+    # 전체 미사용 선수 중 role_score 기준으로 fallback 추천합니다.
+    if role in ["RW", "LW", "ST"]:
+        return available_players
+
+    return compatible_candidates
 
 
 def _player_payload(player) -> dict:
@@ -98,12 +124,12 @@ def recommend_lineup_payload(players_df=None, formation: str = "4-3-3") -> dict:
 
     for slot in get_formation_slots(formation):
         role = slot["role"]
-        accepted_positions = _candidate_positions(role)
 
-        candidates = players[
-            players["position_group"].isin(accepted_positions)
-            & (~players["salary_id"].isin(used_salary_ids))
-        ].copy()
+        candidates = _get_role_candidates(
+            players=players,
+            role=role,
+            used_salary_ids=used_salary_ids,
+        )
 
         if candidates.empty:
             lineup[slot["slot_id"]] = None

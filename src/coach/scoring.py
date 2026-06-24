@@ -27,7 +27,62 @@ def calculate_player_score(player, tactic="balanced"):
     return round(total_score, 2)
 
 
+def normalize_position(value: str) -> str:
+    if value is None:
+        return ""
+
+    return str(value).strip().upper()
+
+
+POSITION_COMPATIBILITY = {
+    "GK": ["GK"],
+
+    "CB": ["CB", "LCB", "RCB", "DF", "DEF"],
+    "LB": ["LB", "LWB", "CB", "DF", "DEF"],
+    "RB": ["RB", "RWB", "CB", "DF", "DEF"],
+
+    "DM": ["DM", "CDM", "CM", "MF", "MID"],
+    "CM": ["CM", "DM", "CDM", "AM", "CAM", "MF", "MID"],
+    "AM": ["AM", "CAM", "CM", "FW", "MID"],
+
+    "LW": ["LW", "LM", "RW", "RM", "ST", "CF", "FW", "FWD"],
+    "RW": ["RW", "RM", "RWF", "LW", "LM", "ST", "CF", "FW", "FWD"],
+    "ST": ["ST", "CF", "FW", "FWD", "LW", "RW"],
+}
+
+
+def is_position_compatible(player: dict, role: str) -> bool:
+    target_role = normalize_position(role)
+
+    position_values = [
+        player.get("position"),
+        player.get("detail_position"),
+        player.get("position_group"),
+        player.get("role"),
+    ]
+
+    compatible_positions = POSITION_COMPATIBILITY.get(target_role, [target_role])
+
+    for value in position_values:
+        normalized = normalize_position(value)
+
+        if not normalized:
+            continue
+
+        if normalized in compatible_positions:
+            return True
+
+        # "RW,LW", "RW / ST", "LW;RW" 같은 문자열 대응
+        for compatible_position in compatible_positions:
+            if compatible_position in normalized:
+                return True
+
+    return False
+
+
 def role_score(player, role):
+    role = normalize_position(role)
+
     role_weights = {
         "GK": {"keeper_score": 0.70, "stamina_score": 0.15, "discipline_score": 0.15},
         "CB": {"defense_score": 0.55, "stamina_score": 0.25, "discipline_score": 0.20},
@@ -44,10 +99,23 @@ def role_score(player, role):
     weights = role_weights.get(role, role_weights["CM"])
 
     total_score = 0
+
     for score_name, weight in weights.items():
         total_score += safe_number(player, score_name) * weight
 
     if total_score == 0:
         total_score = calculate_player_score(player, "balanced")
+
+    # 핵심 추가 부분:
+    # 포지션이 정확히 맞거나 호환되면 점수 유지,
+    # 안 맞아도 RW/LW/ST 같은 공격 슬롯은 완전히 제외하지 않고 약간만 감점.
+    if is_position_compatible(player, role):
+        position_multiplier = 1.0
+    elif role in ["RW", "LW", "ST"]:
+        position_multiplier = 0.88
+    else:
+        position_multiplier = 0.75
+
+    total_score *= position_multiplier
 
     return round(max(0, min(100, total_score)), 2)
