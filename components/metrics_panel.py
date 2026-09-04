@@ -7,12 +7,25 @@ import streamlit as st
 
 def _safe_int(value) -> int:
     try:
-        return max(0, min(100, int(round(float(value)))))
-    except (TypeError, ValueError):
+        return max(
+            0,
+            min(
+                100,
+                int(round(float(value))),
+            ),
+        )
+
+    except (
+        TypeError,
+        ValueError,
+    ):
         return 0
 
 
-def metric_bar(label: str, value) -> None:
+def metric_bar(
+    label: str,
+    value,
+) -> None:
     score = _safe_int(value)
 
     st.markdown(
@@ -31,7 +44,10 @@ def metric_bar(label: str, value) -> None:
     )
 
 
-def grade_card(score, grade: str) -> None:
+def grade_card(
+    score,
+    grade: str,
+) -> None:
     score_value = _safe_int(score)
 
     st.markdown(
@@ -54,30 +70,48 @@ def render_metrics_panel(
     ai_comment: str = "",
     warnings: list[str] | None = None,
     *,
-    title: str = "⚽ AI 감독 코멘트",
+    title: str = "⚽ 감독 코멘트",
     comment_source: str | None = None,
     comment_error: str | None = None,
     prompt_preview: str | None = None,
+    show_debug: bool = False,
 ) -> None:
     warnings = warnings or []
 
     with st.container(border=True):
         st.markdown(f"#### {title}")
 
-        if metrics.get("team_score", 0) == 0:
-            st.write(
-                "아직 라인업이 비어 있습니다. 포메이션을 선택하고 선수를 배치하거나 AI 추천을 실행해 보세요."
+        if (
+            metrics.get(
+                "team_score",
+                0,
             )
-        elif ai_comment:
-            st.write(ai_comment)
-        else:
+            == 0
+        ):
             st.write(
-                f"현재 {formation} 라인업은 팀 종합 점수 {metrics.get('team_score', 0)}점입니다. "
-                "포지션 적합도와 좌우 밸런스를 함께 고려한 추천 결과입니다."
+                "아직 라인업이 비어 있습니다. "
+                "포메이션을 선택하고 선수를 배치하거나 "
+                "AI 추천을 실행해 보세요."
             )
 
-        if comment_source or comment_error or prompt_preview:
-            with st.expander("AI 코멘트 디버그 정보", expanded=False):
+        elif ai_comment:
+            st.write(ai_comment)
+
+        else:
+            st.write(
+                f"현재 {formation} 라인업은 "
+                "팀 종합 점수 "
+                f"{metrics.get('team_score', 0)}점입니다. "
+                "포지션 적합도와 좌우 밸런스를 함께 "
+                "고려한 추천 결과입니다."
+            )
+
+        # 개발 중일 때만 표시
+        if show_debug and (comment_source or comment_error or prompt_preview):
+            with st.expander(
+                "코멘트 디버그 정보",
+                expanded=False,
+            ):
                 if comment_source:
                     st.caption(f"commentSource: {comment_source}")
 
@@ -97,14 +131,72 @@ def render_metrics_panel(
                 for warning in warnings:
                     st.caption(f"- {warning}")
 
-    grade_card(metrics.get("team_score", 0), metrics.get("grade", "C"))
+    grade_card(
+        metrics.get(
+            "team_score",
+            0,
+        ),
+        metrics.get(
+            "grade",
+            "C",
+        ),
+    )
 
     with st.container(border=True):
         st.markdown("#### 세부 지표")
-        metric_bar("공격 기대값", metrics.get("attack", 0))
-        metric_bar("중원 장악력", metrics.get("midfield", 0))
-        metric_bar("수비 안정성", metrics.get("defense", 0))
-        metric_bar("골키퍼 안정성", metrics.get("keeper", 0))
-        metric_bar("포지션 적합도", metrics.get("position_fit", 0))
-        metric_bar("좌우 밸런스", metrics.get("balance", 0))
-        metric_bar("선수 시너지", metrics.get("synergy", 0))
+
+        metric_bar(
+            "공격 기대값",
+            metrics.get(
+                "attack",
+                0,
+            ),
+        )
+
+        metric_bar(
+            "중원 장악력",
+            metrics.get(
+                "midfield",
+                0,
+            ),
+        )
+
+        metric_bar(
+            "수비 안정성",
+            metrics.get(
+                "defense",
+                0,
+            ),
+        )
+
+        metric_bar(
+            "골키퍼 안정성",
+            metrics.get(
+                "keeper",
+                0,
+            ),
+        )
+
+        metric_bar(
+            "포지션 적합도",
+            metrics.get(
+                "position_fit",
+                0,
+            ),
+        )
+
+        metric_bar(
+            "좌우 밸런스",
+            metrics.get(
+                "balance",
+                0,
+            ),
+        )
+
+        metric_bar(
+            "선수 시너지",
+            metrics.get(
+                "synergy",
+                0,
+            ),
+        )
