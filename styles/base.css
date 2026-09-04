@@ -19,16 +19,30 @@
   background: #081827;
 }
 
-h1, h2, h3, h4, h5, h6, p, span, div {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+div {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 [data-testid="stMarkdownContainer"],
-[data-testid="stMarkdownContainer"] *,
-[data-testid="stText"],
-[data-testid="stText"] *,
+[data-testid="stText"] {
+  color: var(--text);
+}
+
 [data-testid="stCaptionContainer"],
 [data-testid="stCaptionContainer"] * {
+  color: var(--muted) !important;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.28);
   color: var(--text);
 }
 
@@ -204,6 +218,6 @@ div[data-testid="stDataFrame"] canvas {
 /* number input +/- buttons */
 button[aria-label="Add"],
 button[aria-label="Subtract"] {
-  background: rgba(255,255,255,0.08) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
   color: #e8f6ff !important;
 }
