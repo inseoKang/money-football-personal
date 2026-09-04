@@ -40,8 +40,6 @@ def _first_query_value(value):
 
 
 def main() -> None:
-    load_css()
-
     st.session_state.setdefault("user_mode", None)
     st.session_state.setdefault("current_page", "home")
 
@@ -58,6 +56,7 @@ def main() -> None:
         st.session_state.current_page = "home"
         st.session_state.user_mode = None
 
+    load_css(page_key)
     app_header()
 
     if page_key != "home":
