@@ -116,13 +116,14 @@ def _build_detail_html(player: dict) -> str:
   body {{
     margin: 0;
     padding: 0;
-    background: transparent;
+    background: #0b1b29;
     font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    color: #e8f6ff;
+    color: #f2f9fd;
   }}
 
   .detail-wrap {{
     background: #0b1b29;
+    color: #f2f9fd;
     border-radius: 18px;
     padding: 18px;
   }}
@@ -146,7 +147,7 @@ def _build_detail_html(player: dict) -> str:
   }}
 
   .sub {{
-    color: #9bb9cb;
+    color: #b7cfdb;
     font-size: 13px;
     font-weight: 700;
   }}
@@ -170,7 +171,7 @@ def _build_detail_html(player: dict) -> str:
   }}
 
   .overall span {{
-    color: #8fb0c3;
+    color: #a9c5d4;
     font-size: 10px;
     font-weight: 900;
     margin-top: 6px;
@@ -286,7 +287,7 @@ def _build_detail_html(player: dict) -> str:
 
   .stat-box span {{
     display: block;
-    color: #8fb0c3;
+    color: #a9c5d4;
     font-size: 12px;
     font-weight: 800;
     margin-bottom: 8px;
@@ -304,10 +305,19 @@ def _build_detail_html(player: dict) -> str:
     border-radius: 14px;
     background: rgba(32, 217, 135, .08);
     border: 1px solid rgba(32, 217, 135, .24);
-    color: #a8c5d4;
+    color: #c6dce7;
     font-size: 12px;
     line-height: 1.55;
     font-weight: 700;
+  }}
+  @media (max-width: 720px) {{
+    .detail-wrap {{ padding: 12px; }}
+    .detail-head {{ align-items: flex-start; padding: 14px; }}
+    .grid {{ grid-template-columns: 1fr; }}
+    .panel {{ min-height: 0; padding: 14px; }}
+    .overall {{ width: 74px; height: 74px; flex: 0 0 74px; }}
+    .overall strong {{ font-size: 26px; }}
+    svg {{ width: min(260px, 100%); height: auto; }}
   }}
 </style>
 </head>

@@ -130,7 +130,12 @@ def _render_choice_buttons(
         active = st.session_state[state_key] == option
         label = f"✓ {option}" if active else option
 
-        if col.button(label, key=f"{key_prefix}_{option}", use_container_width=True):
+        if col.button(
+            label,
+            key=f"{key_prefix}_{option}",
+            type="primary" if active else "secondary",
+            use_container_width=True,
+        ):
             if st.session_state[state_key] != option:
                 st.session_state[state_key] = option
                 changed = True
@@ -185,7 +190,12 @@ def _render_left_player_pool(players: pd.DataFrame) -> None:
         active = st.session_state.vs_left_filter == group
         label = f"✓ {group}" if active else group
 
-        if group_cols[idx].button(label, key=f"vs_left_filter_{group}", use_container_width=True):
+        if group_cols[idx].button(
+            label,
+            key=f"vs_left_filter_{group}",
+            type="primary" if active else "secondary",
+            use_container_width=True,
+        ):
             st.session_state.vs_left_filter = group
             st.rerun()
 

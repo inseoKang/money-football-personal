@@ -157,6 +157,7 @@ def _render_button_filter(
             if st.button(
                 button_label,
                 key=f"{key_prefix}_{option}",
+                type="primary" if is_selected else "secondary",
                 use_container_width=True,
             ):
                 next_selected = option
@@ -182,6 +183,7 @@ def _render_formation_controls(formations: list[str]) -> str:
             if st.button(
                 label,
                 key=f"formation_btn_{formation}",
+                type="primary" if selected else "secondary",
                 use_container_width=True,
             ):
                 _change_formation(formation)
