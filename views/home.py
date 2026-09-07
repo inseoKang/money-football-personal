@@ -3,12 +3,11 @@ from __future__ import annotations
 import streamlit as st
 
 from components.layout import page_title
-from components.navigation import set_mode
 
 
 def _mode_card_html(
     *,
-    icon: str,
+    page: str,
     badge: str,
     title: str,
     description: str,
@@ -21,13 +20,11 @@ def _mode_card_html(
     )
 
     return f"""
-    <div class="mode-card">
-      <div class="mode-card-top">
-        <div class="mode-icon">{icon}</div>
-        <div class="mode-badge">{badge}</div>
+    <a class="mode-card mode-card-link" href="?page={page}" target="_self" aria-label="{title} 모드로 이동" style="display:block;text-decoration:none;color:inherit;">
+      <div class="mode-card-heading" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;gap:.75rem;margin-bottom:.7rem;">
+        <h3 style="margin:0;min-width:0;">{title}</h3>
+        <span class="mode-badge" style="flex-shrink:0;white-space:nowrap;">{badge}</span>
       </div>
-
-      <h3>{title}</h3>
       <p>{description}</p>
 
       <div class="feature-list">
@@ -37,7 +34,7 @@ def _mode_card_html(
       <div class="mode-note">
         {note}
       </div>
-    </div>
+    </a>
     """
 
 
@@ -85,7 +82,7 @@ def render() -> None:
     with col1:
         st.markdown(
             _mode_card_html(
-                icon="🧠",
+                page="coach_squad",
                 badge="Coach Mode",
                 title="감독용",
                 description=(
@@ -106,14 +103,11 @@ def render() -> None:
             unsafe_allow_html=True,
         )
 
-        if st.button("감독 모드로 이동하기 →", key="home_coach_card", use_container_width=True):
-            set_mode("coach")
-            st.rerun()
 
     with col2:
         st.markdown(
             _mode_card_html(
-                icon="🔎",
+                page="scout_search",
                 badge="Scout Mode",
                 title="스카우터용",
                 description=(
@@ -134,6 +128,3 @@ def render() -> None:
             unsafe_allow_html=True,
         )
 
-        if st.button("스카우터 모드로 이동하기 →", key="home_scout_card", use_container_width=True):
-            set_mode("scout")
-            st.rerun()
