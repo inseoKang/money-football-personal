@@ -1,145 +1,145 @@
 .vs-control-section {
-    margin-top: 1.1rem;
-    margin-bottom: 1.35rem;
+  margin-top: 1.1rem;
+  margin-bottom: 1.35rem;
 }
 
 .vs-panel-title {
-    font-size: 1.08rem;
-    font-weight: 900;
-    color: #e8f6ff;
-    margin-bottom: .25rem;
+  font-size: 1.08rem;
+  font-weight: 900;
+  color: #e8f6ff;
+  margin-bottom: 0.25rem;
 }
 
 .vs-panel-desc {
-    font-size: .78rem;
-    color: #8fb0c3;
-    margin-bottom: .55rem;
-    min-height: 1.1rem;
+  font-size: 0.78rem;
+  color: #8fb0c3;
+  margin-bottom: 0.55rem;
+  min-height: 1.1rem;
 }
 
 .control-label {
-    color: #9bb8ca;
-    font-size: .78rem;
-    font-weight: 850;
-    margin: .05rem 0 .35rem 0;
+  color: #9bb8ca;
+  font-size: 0.78rem;
+  font-weight: 850;
+  margin: 0.05rem 0 0.35rem 0;
 }
 
 .vs-select-spacer {
-    height: 26px;
+  height: 26px;
 }
 
 .vs-formation-zone {
-    min-height: 48px;
+  min-height: 48px;
 }
 
 .vs-opponent-formation-zone {
-    margin-top: -2.15rem;
-    min-height: 48px;
+  margin-top: 0;
+  min-height: 48px;
 }
 
 .vs-control-section [data-testid="stSelectbox"] {
-    margin-bottom: 0rem;
+  margin-bottom: 0rem;
 }
 
 .vs-ai-button-zone {
-    margin-top: .8rem;
+  margin-top: 0.8rem;
 }
 
 .vs-center-box {
-    min-height: 170px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding-bottom: .15rem;
+  min-height: 170px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 0.15rem;
 }
 
 .vs-big-text {
-    text-align: center;
-    color: #2bd889;
-    font-size: 2rem;
-    line-height: 1;
-    font-weight: 1000;
-    letter-spacing: .08em;
-    margin-bottom: .65rem;
+  text-align: center;
+  color: #2bd889;
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 1000;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.65rem;
 }
 
 .delta-row {
-    border: 1px solid rgba(120, 220, 255, 0.12);
-    background: rgba(255,255,255,.045);
-    border-radius: 14px;
-    padding: .75rem .85rem;
-    margin-bottom: .5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  border: 1px solid rgba(120, 220, 255, 0.12);
+  background: rgba(255, 255, 255, 0.045);
+  border-radius: 14px;
+  padding: 0.75rem 0.85rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .delta-label {
-    color: #dff5ff;
-    font-weight: 800;
+  color: #dff5ff;
+  font-weight: 800;
 }
 
 .delta-value {
-    font-weight: 950;
+  font-weight: 950;
 }
 
 .positive {
-    color: #8fffd0;
+  color: #8fffd0;
 }
 
 .negative {
-    color: #fb7185;
+  color: #fb7185;
 }
 
 .neutral {
-    color: #dff5ff;
+  color: #dff5ff;
 }
 
 /* VS 기본 버튼 */
 .vs-control-section .stButton > button,
 .delta-row + div .stButton > button {
-    border-radius: 12px;
-    min-height: 2.35rem;
-    font-weight: 850;
-    white-space: nowrap;
-    font-size: .78rem;
+  border-radius: 12px;
+  min-height: 2.35rem;
+  font-weight: 850;
+  white-space: nowrap;
+  font-size: 0.78rem;
 }
 
 /* 상단 왼쪽/중앙/오른쪽 영역 사이 여백 */
 .vs-control-section > div[data-testid="stHorizontalBlock"] {
-    gap: 1.45rem;
+  gap: 1.45rem;
 }
 
 /* 포메이션 버튼 padding 축소 */
 .vs-formation-zone .stButton > button,
 .vs-opponent-formation-zone .stButton > button {
-    min-height: 2.2rem;
-    padding-left: .18rem;
-    padding-right: .18rem;
-    font-size: .73rem;
-    border-radius: 10px;
+  min-height: 2.2rem;
+  padding-left: 0.18rem;
+  padding-right: 0.18rem;
+  font-size: 0.73rem;
+  border-radius: 10px;
 }
 
 /* 포메이션 버튼끼리의 간격 축소 */
 .vs-formation-zone div[data-testid="stHorizontalBlock"],
 .vs-opponent-formation-zone div[data-testid="stHorizontalBlock"] {
-    gap: .32rem;
+  gap: 0.32rem;
 }
 
 /* 중앙 VS 초기화 버튼 강조 */
 .vs-center-box .stButton > button {
-    min-height: 2.45rem;
-    padding-left: .55rem;
-    padding-right: .55rem;
-    font-size: .78rem;
-    border: 1px solid rgba(43, 216, 137, .5);
-    background: rgba(43, 216, 137, .08);
+  min-height: 2.45rem;
+  padding-left: 0.55rem;
+  padding-right: 0.55rem;
+  font-size: 0.78rem;
+  border: 1px solid rgba(43, 216, 137, 0.5);
+  background: rgba(43, 216, 137, 0.08);
 }
 
 /* AI 추천 버튼은 넓고 안정적으로 유지 */
 .vs-ai-button-zone .stButton > button {
-    min-height: 2.45rem;
-    padding-left: .8rem;
-    padding-right: .8rem;
-    font-size: .82rem;
+  min-height: 2.45rem;
+  padding-left: 0.8rem;
+  padding-right: 0.8rem;
+  font-size: 0.82rem;
 }
