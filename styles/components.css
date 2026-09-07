@@ -429,3 +429,20 @@ div[data-testid="stDialog"] button[aria-label="Close"]:hover {
   font-weight: 800;
   color: #21d08f;
 }
+
+/* 사이드바의 현재 메뉴: 체크 대신 배경과 왼쪽 강조선 */
+[data-testid="stSidebar"] .stButton > button[kind="primary"],
+[data-testid="stSidebar"]
+  .stButton
+  > button[kind="primary"]:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--green) 12%, var(--panel)) !important;
+  border-color: var(--green) !important;
+  box-shadow: inset 4px 0 0 var(--green) !important;
+  color: var(--text) !important;
+  font-weight: 700;
+}
+
+[data-testid="stSidebar"] .stButton > button[kind="primary"] * {
+  color: var(--text) !important;
+  font-weight: 700;
+}

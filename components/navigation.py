@@ -57,7 +57,7 @@ def render_sidebar_navigation() -> None:
     with st.sidebar:
         st.markdown("## Money Football")
 
-        if st.button("🏠 메인", width="stretch"):
+        if st.button("홈 화면으로 이동", width="stretch"):
             move_page("home")
             st.rerun()
 
@@ -74,9 +74,13 @@ def render_sidebar_navigation() -> None:
 
         for label, page_key in pages.items():
             is_active = st.session_state.current_page == page_key
-            button_label = f"✅ {label}" if is_active else label
 
-            if st.button(button_label, width="stretch"):
+            if st.button(
+                label,
+                key=f"sidebar_nav_{page_key}",
+                type="primary" if is_active else "secondary",
+                width="stretch",
+            ):
                 move_page(page_key)
                 st.rerun()
 
