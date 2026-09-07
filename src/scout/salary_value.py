@@ -1,4 +1,4 @@
-"""Salary value evaluation for scout Button 2."""
+"""스카우터의 연봉 가치 진단 기능을 제공합니다."""
 
 from __future__ import annotations
 
@@ -11,8 +11,15 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from src.scout.azure_blob_loader import ScoutBlobLoader, scout_blob_paths
 from src.scout.scout_features import parse_float
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+LOCAL_BACKEND_DATASET = PROJECT_ROOT / "data/processed/scouter_backend_player_dataset_2025_2026.csv"
+LOCAL_ONNX_INPUT_DATASET = (
+    PROJECT_ROOT / "data/processed/scouter_onnx_salary_model_input_2025_2026.csv"
+)
+LOCAL_MODEL_DIR = PROJECT_ROOT / "models/salary"
 
 
 VALUE_STATUS_LABELS = {
@@ -25,7 +32,7 @@ VALUE_STATUS_LABELS = {
 
 @dataclass(frozen=True)
 class SalaryModelAssets:
-    """Local paths and metadata needed for salary prediction/explanation."""
+    """연봉 예측과 설명에 필요한 모델 경로 및 설정 정보입니다."""
 
     onnx_model_path: Path
     sklearn_model_path: Path | None
@@ -33,7 +40,7 @@ class SalaryModelAssets:
 
 
 class SalaryValueService:
-    """Evaluate current salary value with ONNX prediction and optional SHAP."""
+    """ONNX 예측과 선택적 SHAP 분석으로 현재 연봉 가치를 평가합니다."""
 
     def __init__(
         self,
@@ -57,8 +64,10 @@ class SalaryValueService:
         self._shap_explainer = None
 
     @classmethod
-    def from_blob(cls, loader: ScoutBlobLoader | None = None) -> "SalaryValueService":
-        """Build a service from configured Azure Blob assets."""
+    def from_blob(cls, loader=None) -> "SalaryValueService":
+        """설정된 Azure Blob 파일로 연봉 평가 서비스를 생성합니다."""
+        from src.scout.azure_blob_loader import ScoutBlobLoader, scout_blob_paths
+
         blob_loader = loader or ScoutBlobLoader()
         paths = scout_blob_paths()
 
@@ -83,7 +92,7 @@ class SalaryValueService:
         model_config_path: str | Path,
         sklearn_model_path: str | Path | None = None,
     ) -> "SalaryValueService":
-        """Build a service from local files for smoke tests and development."""
+        """프로젝트 내부 파일로 연봉 평가 서비스를 생성합니다."""
         backend_rows = _read_csv_path(backend_dataset_path)
         onnx_rows = _read_csv_path(onnx_input_dataset_path)
         config = json.loads(Path(model_config_path).read_text(encoding="utf-8"))
@@ -95,11 +104,10 @@ class SalaryValueService:
         return cls(backend_rows, onnx_rows, assets)
 
     def get_player_search_options(self, keyword: str = "", limit: int = 20) -> list[dict[str, object]]:
-        """Return lightweight player options for frontend autocomplete/selectbox.
+        """화면의 자동 완성과 선택 상자에 사용할 선수 목록을 반환합니다.
 
-        If keyword is blank, return the first `limit` players from the same
-        backend dataset used by the salary-value model. This keeps Button 2
-        frontend selection and backend evaluation aligned.
+        검색어가 비어 있으면 연봉 모델과 동일한 데이터셋에서 앞쪽 `limit`명의
+        선수를 반환하여 화면 선택값과 모델 평가 대상이 어긋나지 않게 합니다.
         """
         needle = str(keyword or "").strip().lower()
 
@@ -135,7 +143,7 @@ class SalaryValueService:
         include_shap: bool = True,
         top_features: int = 5,
     ) -> dict[str, object]:
-        """Return Button 2 salary value evaluation for one player."""
+        """선수 한 명의 연봉 가치 평가 결과를 반환합니다."""
         index, player = self._find_player(player_id=player_id, player_name=player_name)
         feature_row = self.onnx_input_rows[index]
         features = self._feature_array(feature_row)
@@ -176,10 +184,10 @@ class SalaryValueService:
         return result
 
     def explain_prediction(self, features: list[float], top_features: int = 5) -> dict[str, object]:
-        """Return SHAP feature contributions for one feature row.
+        """한 선수의 입력 피처에 대한 SHAP 기여도를 반환합니다.
 
-        SHAP is optional at runtime. If the package or pkl model is unavailable,
-        the response stays API-safe with explanation_available=false.
+        SHAP은 선택 기능입니다. 패키지나 PKL 모델이 없으면 오류를 일으키지 않고
+        `explanation_available=false`가 포함된 결과를 반환합니다.
         """
         if self.assets.sklearn_model_path is None:
             return {"explanation_available": False, "reason": "sklearn_model_path_missing"}
@@ -241,21 +249,35 @@ class SalaryValueService:
         return [float(parse_float(feature_row.get(column)) or 0.0) for column in self.feature_columns]
 
     def _predict_salary(self, features: list[float]) -> float:
+        """ONNX 모델을 우선 사용하고 실패하면 PKL 모델로 예측합니다."""
+        raw_prediction: float
         try:
             import numpy as np
             import onnxruntime as ort
-        except ImportError as exc:
-            raise RuntimeError(f"missing dependency for ONNX salary prediction: {exc.name}") from exc
-
-        if self._onnx_session is None:
-            self._onnx_session = ort.InferenceSession(
-                str(self.assets.onnx_model_path),
-                providers=["CPUExecutionProvider"],
-            )
-
-        input_name = self._onnx_session.get_inputs()[0].name
-        output = self._onnx_session.run(None, {input_name: np.asarray([features], dtype=np.float32)})[0]
-        raw_prediction = float(output.reshape(-1)[0])
+            if self._onnx_session is None:
+                self._onnx_session = ort.InferenceSession(
+                    str(self.assets.onnx_model_path),
+                    providers=["CPUExecutionProvider"],
+                )
+            input_name = self._onnx_session.get_inputs()[0].name
+            output = self._onnx_session.run(
+                None,
+                {input_name: np.asarray([features], dtype=np.float32)},
+            )[0]
+            raw_prediction = float(output.reshape(-1)[0])
+        except (ImportError, OSError, RuntimeError, ValueError) as onnx_error:
+            if self.assets.sklearn_model_path is None:
+                raise RuntimeError(
+                    f"ONNX prediction failed and no PKL fallback exists: {onnx_error}"
+                ) from onnx_error
+            try:
+                model = self._load_sklearn_model()
+                raw_prediction = float(model.predict([features])[0])
+            except Exception as pkl_error:
+                raise RuntimeError(
+                    "Both local ONNX and PKL salary prediction failed. "
+                    f"ONNX: {onnx_error}; PKL: {pkl_error}"
+                ) from pkl_error
         if self.assets.config.get("target_transform") == "log1p":
             return float(math.expm1(raw_prediction))
         return raw_prediction
@@ -284,8 +306,42 @@ def _read_csv_text(text: str) -> list[dict[str, str]]:
 
 @lru_cache(maxsize=1)
 def get_salary_value_service() -> SalaryValueService:
-    """Return a process-local cached SalaryValueService from Blob assets."""
-    return SalaryValueService.from_blob()
+    """Azure를 우선 사용하고 실패하면 프로젝트 내부 파일을 사용합니다."""
+    azure_error: Exception | None = None
+
+    try:
+        return SalaryValueService.from_blob()
+    except Exception as exc:
+        # Azure 설정 누락, 접속 실패, 파일 누락이 발생해도 로컬 실행을 계속합니다.
+        azure_error = exc
+
+    required_paths = [
+        LOCAL_BACKEND_DATASET,
+        LOCAL_ONNX_INPUT_DATASET,
+        LOCAL_MODEL_DIR / "salary_prediction_model.onnx",
+        LOCAL_MODEL_DIR / "model_config.json",
+    ]
+    missing = [str(path) for path in required_paths if not path.is_file()]
+    if missing:
+        raise RuntimeError(
+            "Azure와 로컬 파일에서 연봉 예측 서비스를 모두 준비하지 못했습니다. "
+            f"Azure 오류: {azure_error}; 로컬 누락 파일: {missing}"
+        ) from azure_error
+
+    pkl_path = LOCAL_MODEL_DIR / "salary_prediction_model.pkl"
+    try:
+        return SalaryValueService.from_local_files(
+            backend_dataset_path=LOCAL_BACKEND_DATASET,
+            onnx_input_dataset_path=LOCAL_ONNX_INPUT_DATASET,
+            onnx_model_path=LOCAL_MODEL_DIR / "salary_prediction_model.onnx",
+            model_config_path=LOCAL_MODEL_DIR / "model_config.json",
+            sklearn_model_path=pkl_path if pkl_path.is_file() else None,
+        )
+    except Exception as local_error:
+        raise RuntimeError(
+            "Azure와 로컬 파일에서 연봉 예측 서비스를 모두 준비하지 못했습니다. "
+            f"Azure 오류: {azure_error}; 로컬 오류: {local_error}"
+        ) from local_error
 
 
 def _read_csv_path(path: str | Path) -> list[dict[str, str]]:

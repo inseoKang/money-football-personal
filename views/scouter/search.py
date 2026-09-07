@@ -8,6 +8,7 @@ import streamlit as st
 from components.layout import page_title
 from components.navigation import move_page
 from src.data_loader import load_scout_players
+from src.runtime import is_development_mode
 from src.scout.scout_query import (
     get_advanced_filter_schema,
     get_player_search_options,
@@ -174,19 +175,13 @@ def _player_options(players) -> list[dict[str, str]]:
 
 
 def _value_player_options(players) -> list[dict[str, str]]:
-    """Return Button 2 player options from the salary-value backend source.
-
-    Button 2 uses Azure Blob + ONNX model assets for evaluation, so its
-    frontend player list should come from the same backend dataset. If Azure is
-    not configured in local development, fall back to the processed local scout
-    CSV so the page can still render.
-    """
+    """현재 사용 가능한 Azure 또는 로컬 모델 데이터에서 선수 목록을 만듭니다."""
     try:
-        blob_options = get_player_search_options("", limit=5000)
+        model_options = get_player_search_options("", limit=5000)
 
         normalized_options = []
 
-        for option in blob_options:
+        for option in model_options:
             player_id = str(option.get("player_id") or "")
             label = str(option.get("label") or "")
 
@@ -204,10 +199,10 @@ def _value_player_options(players) -> list[dict[str, str]]:
             return normalized_options
 
     except Exception as exc:
-        st.caption(
-            "Azure 선수 목록을 불러오지 못해 로컬 scout_player_view_2526.csv 기준 목록을 사용합니다. "
-            f"배포 환경에서는 Azure Blob 설정을 확인해 주세요. 상세: {exc}"
-        )
+        st.caption("모델용 선수 목록을 불러오지 못해 기본 선수 목록을 사용합니다.")
+        if is_development_mode():
+            with st.expander("개발자 정보 · 선수 목록 로딩 오류", expanded=False):
+                st.exception(exc)
 
     return _player_options(players)
 
@@ -396,7 +391,7 @@ def _render_value_form(players) -> dict:
     options = _value_player_options(players)
 
     if not options:
-        st.error("선수 데이터가 비어 있습니다. Azure Blob 또는 data/processed/scout_player_view_2526.csv를 확인해 주세요.")
+        st.error("선수 데이터가 비어 있습니다. data/processed의 스카우터 CSV를 확인해 주세요.")
         return {
             "search_type": "value",
             "intent_label": INTENTS["value"]["title"],
@@ -414,7 +409,7 @@ def _render_value_form(players) -> dict:
     )
 
     st.caption(
-        "이 기능은 Azure Blob의 스카우터 백엔드 데이터셋과 ONNX 연봉 예측 모델을 기준으로 평가합니다."
+        "Azure가 연결되어 있으면 Azure 데이터를 사용하고, 연결되지 않으면 프로젝트 내부 ONNX/PKL 모델을 사용합니다."
     )
 
     return {

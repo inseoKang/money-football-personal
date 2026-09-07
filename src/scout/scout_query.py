@@ -1,4 +1,4 @@
-"""Query helpers for scout search buttons."""
+"""스카우터 검색 화면에서 사용하는 조회 및 필터 함수를 제공합니다."""
 
 from __future__ import annotations
 
@@ -148,36 +148,36 @@ def _is_true(value: object) -> bool:
 
 
 def get_role_options(position_group: str | None = None) -> list[dict[str, str]]:
-    """Return role options allowed for the selected position group."""
+    """선택한 포지션 그룹에서 사용할 수 있는 역할 목록을 반환합니다."""
     group = (position_group or "ALL").upper()
     roles = POSITION_ROLE_OPTIONS.get(group, POSITION_ROLE_OPTIONS["ALL"])
     return [{"value": role, "label": role, "score_column": ROLE_SCORE_COLUMNS[role]} for role in roles]
 
 
 def get_tactical_need_options(role_key: str | None = None) -> list[dict[str, str]]:
-    """Return tactical need options for a role."""
+    """선택한 역할에 맞는 전술 요구사항 목록을 반환합니다."""
     role = role_key or "Creative Midfielder"
     options = TACTICAL_NEED_OPTIONS.get(role, [])
     return [{"value": option, "label": option} for option in options]
 
 
 def get_similarity_focus_options() -> list[dict[str, str]]:
-    """Return similarity focus options for Button 3."""
+    """유사 선수 탐색에서 사용할 비교 기준 목록을 반환합니다."""
     return [dict(option) for option in SIMILARITY_FOCUS_OPTIONS]
 
 
 def get_position_scope_options() -> list[dict[str, str]]:
-    """Return position scope options for Button 3."""
+    """유사 선수 탐색에서 사용할 포지션 범위 목록을 반환합니다."""
     return [dict(option) for option in POSITION_SCOPE_OPTIONS]
 
 
 def load_scout_player_view(path: str | Path = DEFAULT_VIEW_PATH) -> list[dict[str, str]]:
-    """Load the processed scout player view."""
+    """가공된 스카우터 선수 데이터를 불러옵니다."""
     return read_csv_rows(path)
 
 
 def get_player_search_options(keyword: str, limit: int = 20) -> list[dict[str, object]]:
-    """Return player autocomplete options for Button 2 from Azure Blob assets."""
+    """Azure 또는 로컬 연봉 모델 데이터에서 선수 선택 목록을 반환합니다."""
     from src.scout.salary_value import get_salary_value_service
 
     return get_salary_value_service().get_player_search_options(keyword, limit=limit)
@@ -189,7 +189,7 @@ def evaluate_player_value(
     include_shap: bool = True,
     top_features: int = 5,
 ) -> dict[str, object]:
-    """Evaluate one player's salary value for Button 2 using Blob model assets."""
+    """Azure를 우선 사용하고 실패하면 로컬 모델로 선수 연봉 가치를 평가합니다."""
     from src.scout.salary_value import get_salary_value_service
 
     return get_salary_value_service().evaluate_player_value(
@@ -204,7 +204,7 @@ def get_advanced_filter_schema(
     players: list[dict[str, str]] | None = None,
     view_path: str | Path = DEFAULT_VIEW_PATH,
 ) -> dict[str, object]:
-    """Return the allowed filter schema for Button 4 advanced search."""
+    """상세 검색에서 허용하는 필터 설정을 반환합니다."""
     rows = players if players is not None else load_scout_player_view(view_path)
     leagues = sorted({row.get("league", "") for row in rows if row.get("league")})
     teams = sorted({row.get("team", "") for row in rows if row.get("team")})
@@ -296,7 +296,7 @@ def find_role_based_players(
     players: list[dict[str, str]] | None = None,
     view_path: str | Path = DEFAULT_VIEW_PATH,
 ) -> list[dict[str, object]]:
-    """Filter and rank players for Button 1, '내가 원하는 선수 찾기'."""
+    """역할·전술 조건으로 선수를 필터링하고 순위를 계산합니다."""
     rows = players if players is not None else load_scout_player_view(view_path)
     role_key = filters.get("role_key") or "Creative Midfielder"
     score_column = ROLE_SCORE_COLUMNS.get(str(role_key), "role_fit_creative_midfielder")
@@ -363,7 +363,7 @@ def find_role_based_players(
 
 
 def validate_advanced_filters(filters: dict) -> dict[str, object]:
-    """Normalize Button 4 filter values into the allowed backend range."""
+    """상세 검색 필터값을 허용 범위에 맞게 정규화합니다."""
     values = filters or {}
     warnings: list[str] = []
 
@@ -437,7 +437,7 @@ def apply_advanced_filters(
     players: list[dict[str, str]] | None = None,
     view_path: str | Path = DEFAULT_VIEW_PATH,
 ) -> list[dict[str, str]]:
-    """Apply Button 4 advanced filters and return matching raw player rows."""
+    """상세 필터를 적용하고 조건에 맞는 선수 원본 행을 반환합니다."""
     rows = players if players is not None else load_scout_player_view(view_path)
     normalized = validate_advanced_filters(filters)
 
@@ -485,7 +485,7 @@ def apply_advanced_filters(
 
 
 def sort_scout_results(rows: list[dict], sort_by: str, descending: bool = True) -> list[dict]:
-    """Sort scout result rows by an allowed numeric column."""
+    """허용된 숫자 열을 기준으로 스카우팅 결과를 정렬합니다."""
     sort_column = ADVANCED_SORT_COLUMNS.get(sort_by, "overall_role_score")
 
     return sorted(
@@ -503,7 +503,7 @@ def advanced_search_players(
     players: list[dict[str, str]] | None = None,
     view_path: str | Path = DEFAULT_VIEW_PATH,
 ) -> list[dict[str, object]]:
-    """Run the Button 4 advanced search flow and return frontend-ready rows."""
+    """상세 검색을 실행하고 화면에서 사용할 선수 목록을 반환합니다."""
     normalized = validate_advanced_filters(filters)
     filtered_rows = apply_advanced_filters(normalized, players=players, view_path=view_path)
 
