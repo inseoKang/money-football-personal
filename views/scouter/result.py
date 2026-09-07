@@ -11,6 +11,7 @@ from components.layout import page_title
 from components.navigation import move_page
 from components.scout_value_dashboard import render_salary_value_dashboard
 from src.data_loader import load_scout_players
+from src.runtime import is_development_mode
 from src.scout.scout_query import (
     advanced_search_players,
     evaluate_player_value,
@@ -108,7 +109,7 @@ SORT_LABELS = {
 }
 
 
-# ---- common helpers -------------------------------------------------------
+# ---- 공통 보조 함수 -------------------------------------------------------
 
 
 def _html(markup: str) -> None:
@@ -212,7 +213,7 @@ def _condition_summary(conditions: dict) -> None:
         chips.extend(
             [
                 f"선수: {conditions.get('player_label', conditions.get('player_id', '-'))}",
-                "평가 방식: Azure ONNX 연봉 예측 모델",
+                "평가 방식: Azure 우선 · 로컬 ONNX/PKL 대체",
                 "설명: SHAP 기반 주요 영향 요인 표시",
             ]
         )
@@ -519,11 +520,31 @@ def _render_selected_detail(df: pd.DataFrame, mode: str, key: str) -> None:
 
 
 def _render_raw_table(df: pd.DataFrame, columns: list[str], label: str = "원본 후보 테이블 보기") -> None:
+    """개발 모드에서만 가공 전 후보 테이블을 표시합니다."""
+    if not is_development_mode():
+        return
+
     with st.expander(label, expanded=False):
         _display_table(df, columns)
 
 
-# ---- result renderers -----------------------------------------------------
+def _friendly_warning(warning: object) -> str | None:
+    """내부 데이터 경고를 사용자가 이해할 수 있는 안내로 바꿉니다."""
+    text = str(warning or "").strip()
+    lowered = text.lower()
+
+    if not text:
+        return None
+    if "low_minutes" in lowered or "low_sample" in lowered:
+        return "출전 기록이 적어 예측의 불확실성이 클 수 있습니다."
+    if "passing_proxy_limited" in lowered:
+        return "일부 패스 기록이 제한되어 대체 지표를 사용했습니다."
+    if "missing" in lowered or "imputed" in lowered:
+        return "일부 기록이 없어 보정값을 사용했습니다."
+    return None
+
+
+# ---- 검색 유형별 결과 화면 ------------------------------------------------
 
 
 def _render_role_based_result(players: pd.DataFrame, conditions: dict) -> None:
@@ -593,23 +614,30 @@ def _render_value_result(players: pd.DataFrame, conditions: dict) -> None:
         )
     except Exception as exc:
         st.error("선수 가치 평가를 실행하지 못했습니다.")
-        st.caption(
-            "Azure Blob 환경변수, 모델 파일, requirements 설치 상태를 확인해 주세요. "
-            f"상세 오류: {exc}"
-        )
+        st.caption("분석 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.")
+        if is_development_mode():
+            with st.expander("개발자 정보 · 상세 오류", expanded=False):
+                st.exception(exc)
         return
 
     render_salary_value_dashboard(result, player_label=player_label)
 
     warnings = result.get("warnings", []) or []
 
-    if warnings:
+    friendly_warnings = {
+        message
+        for warning in warnings
+        if (message := _friendly_warning(warning))
+    }
+
+    if friendly_warnings:
         with st.expander("데이터 주의사항", expanded=False):
-            for warning in warnings:
+            for warning in sorted(friendly_warnings):
                 st.caption(f"- {warning}")
 
-    with st.expander("선수 가치 평가 원본 응답", expanded=False):
-        st.json(result)
+    if is_development_mode():
+        with st.expander("개발자 정보 · 선수 가치 평가 원본 응답", expanded=False):
+            st.json(result)
 
 
 def _render_similar_result(players: pd.DataFrame, conditions: dict) -> None:
@@ -741,11 +769,12 @@ def _render_advanced_result(players: pd.DataFrame, conditions: dict) -> None:
         ],
     )
 
-    with st.expander("검색 조건 원본", expanded=False):
-        st.json(conditions)
+    if is_development_mode():
+        with st.expander("개발자 정보 · 검색 조건 원본", expanded=False):
+            st.json(conditions)
 
 
-# ---- entrypoint -----------------------------------------------------------
+# ---- 화면 진입점 ----------------------------------------------------------
 
 
 def render() -> None:
@@ -770,11 +799,13 @@ def render() -> None:
         st.error("스카우터 선수 데이터가 비어 있습니다. data/processed/scout_player_view_2526.csv를 확인해 주세요.")
         return
 
-    if search_type == "value":
-        _render_value_result(players, conditions)
-    elif search_type == "similar":
-        _render_similar_result(players, conditions)
-    elif search_type == "advanced":
-        _render_advanced_result(players, conditions)
-    else:
-        _render_role_based_result(players, conditions)
+    # 페이지 이동 직후의 기본 실행 화면 대신 사용자에게 이해하기 쉬운 안내를 표시합니다.
+    with st.spinner("선수 데이터를 분석하고 있어요. 잠시만 기다려 주세요."):
+        if search_type == "value":
+            _render_value_result(players, conditions)
+        elif search_type == "similar":
+            _render_similar_result(players, conditions)
+        elif search_type == "advanced":
+            _render_advanced_result(players, conditions)
+        else:
+            _render_role_based_result(players, conditions)

@@ -6,6 +6,8 @@ from textwrap import dedent
 import pandas as pd
 import streamlit as st
 
+from src.runtime import is_development_mode
+
 
 FEATURE_LABELS = {
     "age": "나이",
@@ -306,11 +308,14 @@ def _render_model_meta(result: dict) -> None:
 
 
 def _render_empty_shap(reason: str) -> None:
+    message = "예측 영향 요인을 표시할 수 없습니다."
+    if is_development_mode():
+        message += f"<br/>개발자 정보: {html.escape(str(reason))}"
+
     _html(
         f"""
         <div class="svd-empty-card">
-          SHAP 설명값을 표시할 수 없습니다.<br/>
-          사유: {html.escape(str(reason))}
+          {message}
         </div>
         """
     )
@@ -330,7 +335,6 @@ def _render_shap_dashboard(result: dict) -> None:
         _render_empty_shap("top_features_empty")
         return
 
-    base_value = shap_result.get("base_value_log_salary", "-")
     max_abs = max(float(shap_df["abs_contribution"].max()), 0.000001)
 
     increase_df = shap_df[shap_df["direction_class"] == "increase"]
@@ -338,17 +342,11 @@ def _render_shap_dashboard(result: dict) -> None:
 
     top_row = shap_df.iloc[0]
     top_feature = str(top_row.get("feature_label", "-"))
-    top_impact = float(top_row.get("contribution_log_salary", 0.0))
-
-    total_up = increase_df["contribution_log_salary"].sum() if not increase_df.empty else 0.0
-    total_down = decrease_df["contribution_log_salary"].sum() if not decrease_df.empty else 0.0
-
     summary_html = "".join(
         [
-            _kpi_card("최대 영향 지표", top_feature, f"기여도 {top_impact:+.6f}"),
-            _kpi_card("상승 요인", f"{len(increase_df)}개", f"합계 {total_up:+.6f}"),
-            _kpi_card("하락 요인", f"{len(decrease_df)}개", f"합계 {total_down:+.6f}"),
-            _kpi_card("Base log salary", str(base_value), "모델 기준 예측값"),
+            _kpi_card("가장 큰 영향 요인", top_feature, "예측에서 가장 중요하게 반영"),
+            _kpi_card("연봉 상승 요인", f"{len(increase_df)}개", "예측 연봉을 높인 지표"),
+            _kpi_card("연봉 하락 요인", f"{len(decrease_df)}개", "예측 연봉을 낮춘 지표"),
         ]
     )
 
@@ -360,9 +358,7 @@ def _render_shap_dashboard(result: dict) -> None:
         width = max(6, min(100, abs(contribution) / max_abs * 100))
 
         feature_label = html.escape(str(row.get("feature_label", "-")))
-        feature_key = html.escape(str(row.get("feature", "-")))
         value_text = html.escape(_fmt_number(row.get("value")))
-        contribution_text = html.escape(f"{contribution:+.6f}")
         direction_text = html.escape(str(row.get("direction_label", "-")))
 
         rank = index + 1
@@ -376,7 +372,7 @@ def _render_shap_dashboard(result: dict) -> None:
               <div>
                 <div class="svd-shap-name">{feature_label}</div>
                 <div class="svd-shap-meta">
-                  {feature_key} · 값 {value_text} · 기여도 {contribution_text}
+                  입력값 {value_text}
                 </div>
               </div>
               <div class="svd-shap-pill {direction_class}">{direction_text}</div>
@@ -394,12 +390,12 @@ def _render_shap_dashboard(result: dict) -> None:
         <div class="svd-shap-dashboard">
           <div class="svd-panel-head">
             <div>
-              <div class="svd-panel-title">SHAP 예측 영향도 분석</div>
+              <div class="svd-panel-title">예측 연봉에 영향을 준 요소</div>
               <div class="svd-panel-desc">
                 모델이 이 선수의 다음 시즌 연봉을 예측할 때 가장 크게 참고한 지표입니다.
               </div>
             </div>
-            <div class="svd-panel-badge">Top {len(shap_df)} Features</div>
+            <div class="svd-panel-badge">주요 지표 {len(shap_df)}개</div>
           </div>
 
           <div class="svd-shap-summary-grid">
@@ -413,7 +409,13 @@ def _render_shap_dashboard(result: dict) -> None:
         """
     )
 
-    with st.expander("SHAP 상세 데이터 보기", expanded=False):
+    if is_development_mode():
+        _render_shap_debug_data(shap_df)
+
+
+def _render_shap_debug_data(shap_df: pd.DataFrame) -> None:
+    """개발 모드에서만 SHAP 원본 계산값을 표시합니다."""
+    with st.expander("개발자 정보 · SHAP 원본 데이터", expanded=False):
         display_df = shap_df[
             [
                 "feature_label",
@@ -443,5 +445,6 @@ def render_salary_value_dashboard(result: dict, player_label: str = "") -> None:
     _render_header(result, player_label)
     _render_salary_kpis(result)
     _render_salary_comparison(result)
-    _render_model_meta(result)
+    if is_development_mode():
+        _render_model_meta(result)
     _render_shap_dashboard(result)
