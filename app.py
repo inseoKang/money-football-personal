@@ -2,6 +2,7 @@ import streamlit as st
 
 from components.layout import load_css, app_header
 from components.navigation import infer_mode_from_page, render_sidebar_navigation
+from src.runtime import is_development_mode
 
 from views import home
 from views.coach import squad as coach_squad
@@ -10,7 +11,6 @@ from views.coach import dashboard as coach_dashboard
 from views.scouter import search as scout_search
 from views.scouter import result as scout_result
 from views.scouter import market_dashboard as scout_market_dashboard
-from views.dev import azure_connection_test
 
 
 st.set_page_config(
@@ -29,8 +29,13 @@ PAGES = {
     "scout_search": scout_search.render,
     "scout_result": scout_result.render,
     "scout_market_dashboard": scout_market_dashboard.render,
-    "azure_connection_test": azure_connection_test.render,
 }
+
+# 개발 도구는 개발 모드에서만 주소와 라우팅을 활성화합니다.
+if is_development_mode():
+    from views.dev import azure_connection_test
+
+    PAGES["azure_connection_test"] = azure_connection_test.render
 
 
 def _first_query_value(value):
