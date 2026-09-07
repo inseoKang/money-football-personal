@@ -144,18 +144,20 @@ def _render_button_filter(
     selected: str,
     key_prefix: str,
 ) -> str:
-    st.markdown(f"<div class='squad-control-label'>{label}</div>", unsafe_allow_html=True)
+    st.markdown(
+        f"<div class='squad-control-label'>{label}</div>",
+        unsafe_allow_html=True,
+    )
 
     columns = st.columns(len(options))
     next_selected = selected
 
     for index, option in enumerate(options):
         is_selected = option == selected
-        button_label = f"✓ {option}" if is_selected else option
 
         with columns[index]:
             if st.button(
-                button_label,
+                option,
                 key=f"{key_prefix}_{option}",
                 type="primary" if is_selected else "secondary",
                 use_container_width=True,
@@ -177,11 +179,10 @@ def _render_formation_controls(formations: list[str]) -> str:
 
     for index, formation in enumerate(formations):
         selected = formation == current_formation
-        label = f"✓ {formation}" if selected else formation
 
         with columns[index]:
             if st.button(
-                label,
+                formation,
                 key=f"formation_btn_{formation}",
                 type="primary" if selected else "secondary",
                 use_container_width=True,
