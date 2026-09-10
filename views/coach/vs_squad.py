@@ -41,6 +41,10 @@ def _sync_query_state() -> None:
     st.query_params["page"] = "coach_vs_squad"
 
 
+def _clear_left_player_search() -> None:
+    st.session_state["vs_left_player_keyword"] = ""
+
+
 def _get_query_slot() -> str | None:
     return _first_query_value(st.query_params.get("slot"))
 
@@ -128,10 +132,9 @@ def _render_choice_buttons(
 
     for col, option in zip(cols, options):
         active = st.session_state[state_key] == option
-        label = f"✓ {option}" if active else option
 
         if col.button(
-            label,
+            option,
             key=f"{key_prefix}_{option}",
             type="primary" if active else "secondary",
             use_container_width=True,
@@ -177,21 +180,33 @@ def _filter_player_pool(players: list[dict], keyword: str, group: str, selected_
 def _render_left_player_pool(players: pd.DataFrame) -> None:
     st.markdown("### 바르셀로나 선수 목록")
 
-    keyword = st.text_input(
-        "우리 팀 선수 검색",
-        placeholder="선수명, 포지션, 국가 검색",
-        label_visibility="collapsed",
-        key="vs_left_player_keyword",
-    )
+    search_col, clear_col = st.columns([5, 1])
+
+    with search_col:
+        keyword = st.text_input(
+            "우리 팀 선수 검색",
+            placeholder="선수명, 포지션, 국가 검색",
+            label_visibility="collapsed",
+            key="vs_left_player_keyword",
+        )
+
+    with clear_col:
+        st.button(
+            "✕",
+            key="clear_vs_left_player_search",
+            help="검색어 지우기",
+            disabled=not bool(keyword),
+            on_click=_clear_left_player_search,
+            use_container_width=True,
+        )
 
     group_cols = st.columns(5, gap="small")
 
     for idx, group in enumerate(["전체", "GK", "DF", "MF", "FW"]):
         active = st.session_state.vs_left_filter == group
-        label = f"✓ {group}" if active else group
 
         if group_cols[idx].button(
-            label,
+            group,
             key=f"vs_left_filter_{group}",
             type="primary" if active else "secondary",
             use_container_width=True,
