@@ -95,6 +95,10 @@ def _set_detail_player(player_payload: dict) -> None:
     st.session_state["coach_detail_player"] = player_payload
 
 
+def _clear_player_search() -> None:
+    st.session_state["coach_player_search"] = ""
+
+
 def _clear_slot_query() -> None:
     st.query_params.clear()
     st.query_params["page"] = "coach_squad"
@@ -204,11 +208,29 @@ def _render_player_pool(
 
     used_ids = _used_salary_ids(lineup)
 
-    search = st.text_input(
-        "선수 검색",
-        placeholder="이름, 포지션, 국가, 구단",
-        key="coach_player_search",
-    )
+    search_col, clear_col = st.columns([5, 1])
+
+    with search_col:
+        search = st.text_input(
+            "선수 이름 검색",
+            placeholder="선수 이름의 일부를 입력하세요",
+            help="입력 후 Enter를 누르거나 입력창 밖을 클릭하면 적용됩니다.",
+            key="coach_player_search",
+        )
+
+    with clear_col:
+        st.markdown(
+            "<div style='height: 1.75rem'></div>",
+            unsafe_allow_html=True,
+        )
+        st.button(
+            "✕",
+            key="clear_coach_player_search",
+            help="검색어 지우기",
+            disabled=not bool(search),
+            on_click=_clear_player_search,
+            use_container_width=True,
+        )
 
     selected_position = st.session_state.get("coach_position_filter", "전체")
 
@@ -230,14 +252,12 @@ def _render_player_pool(
     if position_filter != "전체":
         filtered = filtered[filtered["position_group"] == position_filter]
 
-    if search:
-        keyword = search.strip().casefold()
+    keyword = search.strip().casefold()
 
+    if keyword:
+        names = filtered["player"].fillna("").astype(str).str.casefold()
         filtered = filtered[
-            filtered["player"].astype(str).str.casefold().str.contains(keyword, na=False)
-            | filtered["position_group"].astype(str).str.casefold().str.contains(keyword, na=False)
-            | filtered["country"].astype(str).str.casefold().str.contains(keyword, na=False)
-            | filtered["club"].astype(str).str.casefold().str.contains(keyword, na=False)
+            names.str.contains(keyword, regex=False, na=False)
         ]
 
     filtered = filtered.sort_values("overall_score", ascending=False)
