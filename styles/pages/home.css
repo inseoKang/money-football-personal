@@ -1,4 +1,9 @@
-.home-hero {
+/* 페이지 식별용 마커는 레이아웃 공간을 차지하지 않도록 숨깁니다. */
+body:has(.home-page-marker) [data-testid="stElementContainer"]:has(.home-page-marker) {
+  display: none !important;
+}
+
+body:has(.home-page-marker) .home-hero {
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(120, 220, 255, 0.14);
@@ -20,7 +25,7 @@
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
 }
 
-.home-hero::after {
+body:has(.home-page-marker) .home-hero::after {
   content: "";
   position: absolute;
   right: -120px;
@@ -32,7 +37,7 @@
   background: rgba(34, 211, 238, 0.035);
 }
 
-.hero-kicker {
+body:has(.home-page-marker) .hero-kicker {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -46,7 +51,7 @@
   margin-bottom: 1rem;
 }
 
-.home-hero h2 {
+body:has(.home-page-marker) .home-hero h2 {
   margin: 0 0 0.75rem;
   color: #e8f6ff;
   font-size: clamp(2rem, 3vw, 3.15rem);
@@ -55,7 +60,7 @@
   font-weight: 950;
 }
 
-.home-hero p {
+body:has(.home-page-marker) .home-hero p {
   max-width: 860px;
   margin: 0;
   color: #9ebacd;
@@ -64,12 +69,12 @@
   word-break: keep-all;
 }
 
-.hero-highlight {
+body:has(.home-page-marker) .hero-highlight {
   color: #dff6ff;
   font-weight: 850;
 }
 
-.home-summary-grid {
+body:has(.home-page-marker) .home-summary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
@@ -77,30 +82,30 @@
   max-width: 900px;
 }
 
-.summary-item {
+body:has(.home-page-marker) .summary-item {
   border: 1px solid rgba(120, 220, 255, 0.11);
   background: rgba(255, 255, 255, 0.045);
   border-radius: 16px;
   padding: 0.85rem 0.95rem;
 }
 
-.summary-item strong {
+body:has(.home-page-marker) .summary-item strong {
   display: block;
   color: #e8f6ff;
   font-size: 0.9rem;
   margin-bottom: 0.25rem;
 }
 
-.summary-item span {
+body:has(.home-page-marker) .summary-item span {
   color: #8fb0c3;
   font-size: 0.76rem;
 }
 
-.mode-grid-spacer {
+body:has(.home-page-marker) .mode-grid-spacer {
   height: 0.15rem;
 }
 
-.mode-card {
+body:has(.home-page-marker) .mode-card {
   position: relative;
   overflow: hidden;
   min-height: 340px;
@@ -117,7 +122,7 @@
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
 }
 
-.mode-card::after {
+body:has(.home-page-marker) .mode-card::after {
   content: "";
   position: absolute;
   right: -80px;
@@ -129,7 +134,7 @@
   border: 1px solid rgba(32, 217, 135, 0.1);
 }
 
-.mode-card h3 {
+body:has(.home-page-marker) .mode-card h3 {
   margin: 0 0 0.7rem;
   color: #e8f6ff;
   font-size: 1.65rem;
@@ -139,7 +144,7 @@
   z-index: 2;
 }
 
-.mode-card p {
+body:has(.home-page-marker) .mode-card p {
   margin: 0 0 1.15rem;
   color: #9ebacd;
   font-size: 0.9rem;
@@ -149,7 +154,7 @@
   z-index: 2;
 }
 
-.feature-list {
+body:has(.home-page-marker) .feature-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.55rem;
@@ -158,7 +163,7 @@
   z-index: 2;
 }
 
-.feature-pill {
+body:has(.home-page-marker) .feature-pill {
   border: 1px solid rgba(120, 220, 255, 0.12);
   background: rgba(255, 255, 255, 0.045);
   border-radius: 14px;
@@ -168,7 +173,7 @@
   font-weight: 750;
 }
 
-.mode-note {
+body:has(.home-page-marker) .mode-note {
   margin-top: 1rem;
   padding-top: 0.9rem;
   border-top: 1px solid rgba(120, 220, 255, 0.11);
@@ -183,21 +188,21 @@
    특정 페이지 버튼을 건드리지 않도록 여기서는 stButton 전역 선택자를 사용하지 않습니다. */
 
 @media (max-width: 900px) {
-  .home-summary-grid {
+  body:has(.home-page-marker) .home-summary-grid {
     grid-template-columns: 1fr;
   }
 
-  .feature-list {
+  body:has(.home-page-marker) .feature-list {
     grid-template-columns: 1fr;
   }
 
-  .mode-card {
+  body:has(.home-page-marker) .mode-card {
     min-height: auto;
   }
 }
 
 /* 제목과 모드 배지를 같은 행에 배치 */
-.mode-card-heading {
+body:has(.home-page-marker) .mode-card-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -208,12 +213,12 @@
   z-index: 2;
 }
 
-.mode-card-heading h3 {
+body:has(.home-page-marker) .mode-card-heading h3 {
   min-width: 0;
   margin: 0;
 }
 
-.mode-badge {
+body:has(.home-page-marker) .mode-badge {
   flex-shrink: 0;
   border: 1px solid rgba(120, 220, 255, 0.16);
   background: rgba(255, 255, 255, 0.05);
@@ -226,7 +231,7 @@
 }
 
 /* 카드 전체가 모드 이동 링크 */
-a.mode-card-link {
+body:has(.home-page-marker) a.mode-card-link {
   display: block;
   box-sizing: border-box;
   text-decoration: none !important;
@@ -237,23 +242,23 @@ a.mode-card-link {
     box-shadow 150ms ease;
 }
 
-a.mode-card-link:hover {
+body:has(.home-page-marker) a.mode-card-link:hover {
   border-color: var(--green) !important;
   box-shadow: 0 0 0 1px var(--green) !important;
   text-decoration: none !important;
 }
 
-a.mode-card-link:focus-visible {
+body:has(.home-page-marker) a.mode-card-link:focus-visible {
   outline: 2px solid var(--green) !important;
   outline-offset: 4px !important;
 }
 
-.mode-card-link::after {
+body:has(.home-page-marker) .mode-card-link::after {
   pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  a.mode-card-link {
+  body:has(.home-page-marker) a.mode-card-link {
     transition: none;
   }
 }

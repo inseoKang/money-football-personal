@@ -20,10 +20,10 @@ def _mode_card_html(
     )
 
     return f"""
-    <a class="mode-card mode-card-link" href="?page={page}" target="_self" aria-label="{title} 모드로 이동" style="display:block;text-decoration:none;color:inherit;">
-      <div class="mode-card-heading" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;gap:.75rem;margin-bottom:.7rem;">
-        <h3 style="margin:0;min-width:0;">{title}</h3>
-        <span class="mode-badge" style="flex-shrink:0;white-space:nowrap;">{badge}</span>
+    <a class="mode-card mode-card-link" href="?page={page}" target="_self" aria-label="{title} 모드로 이동">
+      <div class="mode-card-heading">
+        <h3>{title}</h3>
+        <span class="mode-badge">{badge}</span>
       </div>
       <p>{description}</p>
 
@@ -39,6 +39,7 @@ def _mode_card_html(
 
 
 def render() -> None:
+    st.markdown('<span class="home-page-marker" aria-hidden="true"></span>', unsafe_allow_html=True)
 
     page_title(
         "Money Football",
