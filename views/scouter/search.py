@@ -894,6 +894,7 @@ def _render_summary(conditions: dict) -> None:
 
 
 def render() -> None:
+    st.markdown('<span class="scout-search-page-marker" aria-hidden="true"></span>', unsafe_allow_html=True)
     st.session_state.current_page = "scout_search"
     st.session_state.user_mode = "scout"
 
@@ -923,7 +924,7 @@ def render() -> None:
 
     with right:
         _render_summary(conditions)
-        st.markdown("<div style='height: 0.85rem;'></div>", unsafe_allow_html=True)
+        st.markdown("<div class='scout-summary-button-spacer'></div>", unsafe_allow_html=True)
 
         disabled = (
             conditions.get("search_type") in {"value", "similar"}

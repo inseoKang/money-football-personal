@@ -1,3 +1,8 @@
+/* 페이지 식별용 마커는 레이아웃 공간을 차지하지 않도록 숨깁니다. */
+body:has(.scout-search-page-marker) [data-testid="stElementContainer"]:has(.scout-search-page-marker) {
+  display: none !important;
+}
+
 /* ============================================================
    스카우트 검색 페이지 전용 스타일
    - 검색 목적 카드, 조건 입력 영역, 체크박스, 결과 미리보기 등을 관리합니다.
@@ -5,31 +10,31 @@
    ============================================================ */
 
 /* ---------- 페이지 전체 폭과 상단 여백 ---------- */
-.block-container {
+body:has(.scout-search-page-marker) .block-container {
     max-width: 1360px;
     padding-top: 0.8rem;
     padding-bottom: 2.2rem;
 }
 
-[data-testid="stHeader"] {
+body:has(.scout-search-page-marker) [data-testid="stHeader"] {
     background: transparent;
 }
 
 /* 제목 옆에 생기는 Streamlit 링크 아이콘 숨김 */
-a[data-testid="stHeaderActionElements"],
-button[title="Copy link to heading"] {
+body:has(.scout-search-page-marker) a[data-testid="stHeaderActionElements"],
+body:has(.scout-search-page-marker) button[title="Copy link to heading"] {
     display: none !important;
 }
 
 /* ---------- 상단 검색 목적 선택 카드 4개 ---------- */
-.scout-intent-grid {
+body:has(.scout-search-page-marker) .scout-intent-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.8rem;
     margin: 0.45rem 0 1.15rem;
 }
 
-.scout-intent-card {
+body:has(.scout-search-page-marker) .scout-intent-card {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -46,18 +51,18 @@ button[title="Copy link to heading"] {
     transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
-.scout-intent-card:hover {
+body:has(.scout-search-page-marker) .scout-intent-card:hover {
     transform: translateY(-2px);
     border-color: rgba(50, 218, 176, 0.45);
     box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
 }
 
-.scout-intent-card.active {
+body:has(.scout-search-page-marker) .scout-intent-card.active {
     border-color: rgba(44, 225, 173, 0.86);
     box-shadow: inset 0 0 0 1px rgba(44, 225, 173, 0.10);
 }
 
-.scout-intent-card.active::after {
+body:has(.scout-search-page-marker) .scout-intent-card.active::after {
     content: "";
     position: absolute;
     top: 0.85rem;
@@ -69,7 +74,7 @@ button[title="Copy link to heading"] {
     box-shadow: 0 0 0 5px rgba(52, 230, 174, 0.12);
 }
 
-.scout-intent-badge {
+body:has(.scout-search-page-marker) .scout-intent-badge {
     display: inline-flex;
     width: fit-content;
     padding: 0.24rem 0.62rem;
@@ -81,26 +86,26 @@ button[title="Copy link to heading"] {
     font-weight: 700;
 }
 
-.scout-intent-title {
+body:has(.scout-search-page-marker) .scout-intent-title {
     color: #f4fbff !important;
     font-size: 1.05rem;
     font-weight: 820;
     line-height: 1.32;
 }
 
-.scout-intent-desc {
+body:has(.scout-search-page-marker) .scout-intent-desc {
     color: rgba(214, 228, 238, 0.72) !important;
     font-size: 0.90rem;
     line-height: 1.48;
 }
 
 /* ---------- 현재 선택한 검색 방식의 제목과 설명 ---------- */
-.scout-form-head {
+body:has(.scout-search-page-marker) .scout-form-head {
     /* 페이지 제목/설명 묶음과 첫 조건 카드 사이 여백 */
     margin: 0 0 0.62rem;
 }
 
-.scout-form-head h2 {
+body:has(.scout-search-page-marker) .scout-form-head h2 {
     margin: 0 !important;
     color: #f4fbff !important;
     font-size: 1.95rem;
@@ -109,7 +114,7 @@ button[title="Copy link to heading"] {
     letter-spacing: -0.02em;
 }
 
-.scout-form-head p {
+body:has(.scout-search-page-marker) .scout-form-head p {
     /* 제목과 설명은 조금 더 가깝게 */
     margin: 0.10rem 0 0 !important;
     color: rgba(209, 224, 236, 0.74) !important;
@@ -118,7 +123,7 @@ button[title="Copy link to heading"] {
 }
 
 /* ---------- 기본 조건 / 세부 조건 / 결과 설정을 감싸는 큰 카드 박스 ---------- */
-[data-testid="stVerticalBlockBorderWrapper"] {
+body:has(.scout-search-page-marker) [data-testid="stVerticalBlockBorderWrapper"] {
     border-radius: 1.15rem !important;
     border: 1px solid rgba(58, 108, 139, 0.40) !important;
     background:
@@ -128,19 +133,19 @@ button[title="Copy link to heading"] {
     overflow: hidden;
 }
 
-[data-testid="stVerticalBlockBorderWrapper"] > div {
+body:has(.scout-search-page-marker) [data-testid="stVerticalBlockBorderWrapper"] > div {
     padding: 1rem 1.12rem 1.05rem !important;
 }
 
 /* ---------- 각 조건 카드의 번호, 제목, 설명 ---------- */
-.section-head {
+body:has(.scout-search-page-marker) .section-head {
     display: flex;
     align-items: flex-start;
     gap: 0.70rem;
     margin: 0 0 0.42rem;
 }
 
-.section-badge {
+body:has(.scout-search-page-marker) .section-badge {
     width: 1.35rem;
     height: 1.35rem;
     margin-top: 0.12rem;
@@ -157,7 +162,7 @@ button[title="Copy link to heading"] {
 }
 
 /* 조건 카드 제목 스타일 */
-.section-title-wrap h3 {
+body:has(.scout-search-page-marker) .section-title-wrap h3 {
     margin: 0 !important;
     padding: 0 !important;
     color: #f5fbff !important;
@@ -167,7 +172,7 @@ button[title="Copy link to heading"] {
     letter-spacing: -0.01em;
 }
 
-.section-title-wrap p {
+body:has(.scout-search-page-marker) .section-title-wrap p {
     margin: 0.05rem 0 0 !important;
     padding: 0 !important;
     color: rgba(196, 212, 224, 0.72) !important;
@@ -176,20 +181,20 @@ button[title="Copy link to heading"] {
 }
 
 /* ---------- 카드 안 입력 요소들의 세로/가로 간격 ---------- */
-[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVerticalBlock"] {
+body:has(.scout-search-page-marker) [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVerticalBlock"] {
     gap: 0.78rem;
 }
 
-[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stHorizontalBlock"] {
+body:has(.scout-search-page-marker) [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stHorizontalBlock"] {
     gap: 0.90rem !important;
 }
 
 /* ---------- 포지션 그룹, 리그, 결과 개수 같은 입력 라벨 ---------- */
-[data-testid="stSelectbox"] label p,
-[data-testid="stMultiSelect"] label p,
-[data-testid="stNumberInput"] label p,
-[data-testid="stSlider"] label p,
-[data-testid="stCheckbox"] label p {
+body:has(.scout-search-page-marker) [data-testid="stSelectbox"] label p,
+body:has(.scout-search-page-marker) [data-testid="stMultiSelect"] label p,
+body:has(.scout-search-page-marker) [data-testid="stNumberInput"] label p,
+body:has(.scout-search-page-marker) [data-testid="stSlider"] label p,
+body:has(.scout-search-page-marker) [data-testid="stCheckbox"] label p {
     color: #edf6fb !important;
     font-size: 0.97rem !important;
     font-weight: 760 !important;
@@ -197,10 +202,10 @@ button[title="Copy link to heading"] {
 }
 
 /* 라벨과 드롭다운/입력창 사이 간격 */
-[data-testid="stSelectbox"] [data-testid="stWidgetLabel"],
-[data-testid="stMultiSelect"] [data-testid="stWidgetLabel"],
-[data-testid="stNumberInput"] [data-testid="stWidgetLabel"],
-[data-testid="stSlider"] [data-testid="stWidgetLabel"] {
+body:has(.scout-search-page-marker) [data-testid="stSelectbox"] [data-testid="stWidgetLabel"],
+body:has(.scout-search-page-marker) [data-testid="stMultiSelect"] [data-testid="stWidgetLabel"],
+body:has(.scout-search-page-marker) [data-testid="stNumberInput"] [data-testid="stWidgetLabel"],
+body:has(.scout-search-page-marker) [data-testid="stSlider"] [data-testid="stWidgetLabel"] {
     margin-bottom: 0.34rem !important;
 }
 
@@ -216,8 +221,8 @@ button[title="Copy link to heading"] {
 */
 
 /* selectbox / multiselect 박스의 크기와 배경 */
-[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
-[data-testid="stMultiSelect"] div[data-baseweb="select"] > div {
+body:has(.scout-search-page-marker) [data-testid="stSelectbox"] div[data-baseweb="select"] > div,
+body:has(.scout-search-page-marker) [data-testid="stMultiSelect"] div[data-baseweb="select"] > div {
     min-height: 3.12rem !important;
     height: 3.12rem !important;
     box-sizing: border-box !important;
@@ -232,16 +237,16 @@ button[title="Copy link to heading"] {
 }
 
 /* 일반 드롭다운 선택값의 세로 정렬 */
-[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div {
+body:has(.scout-search-page-marker) [data-testid="stSelectbox"] div[data-baseweb="select"] > div > div {
     display: flex !important;
     align-items: center !important;
     min-height: 100% !important;
 }
 
 /* 일반 드롭다운 안에 표시되는 글자 */
-[data-testid="stSelectbox"] div[data-baseweb="select"] span,
-[data-testid="stSelectbox"] div[data-baseweb="select"] [class*="singleValue"],
-[data-testid="stSelectbox"] div[data-baseweb="select"] [class*="valueContainer"] {
+body:has(.scout-search-page-marker) [data-testid="stSelectbox"] div[data-baseweb="select"] span,
+body:has(.scout-search-page-marker) [data-testid="stSelectbox"] div[data-baseweb="select"] [class*="singleValue"],
+body:has(.scout-search-page-marker) [data-testid="stSelectbox"] div[data-baseweb="select"] [class*="valueContainer"] {
     font-size: 0.98rem !important;
     font-weight: 500 !important;
     line-height: 1.2 !important;
@@ -250,9 +255,9 @@ button[title="Copy link to heading"] {
 }
 
 /* 복수 선택 드롭다운 안의 글자 */
-[data-testid="stMultiSelect"] div[data-baseweb="select"] input,
-[data-testid="stMultiSelect"] div[data-baseweb="select"] span,
-[data-testid="stMultiSelect"] div[data-baseweb="select"] [class*="valueContainer"] {
+body:has(.scout-search-page-marker) [data-testid="stMultiSelect"] div[data-baseweb="select"] input,
+body:has(.scout-search-page-marker) [data-testid="stMultiSelect"] div[data-baseweb="select"] span,
+body:has(.scout-search-page-marker) [data-testid="stMultiSelect"] div[data-baseweb="select"] [class*="valueContainer"] {
     font-size: 0.98rem !important;
     font-weight: 500 !important;
     line-height: 1.2 !important;
@@ -260,14 +265,14 @@ button[title="Copy link to heading"] {
     -webkit-text-fill-color: #f5fbff !important;
 }
 
-[data-testid="stMultiSelect"] div[data-baseweb="select"] input {
+body:has(.scout-search-page-marker) [data-testid="stMultiSelect"] div[data-baseweb="select"] input {
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     min-height: 1.5rem !important;
 }
 
 /* 복수 선택 드롭다운의 안내 문구 스타일 */
-[data-testid="stMultiSelect"] div[data-baseweb="select"] input::placeholder {
+body:has(.scout-search-page-marker) [data-testid="stMultiSelect"] div[data-baseweb="select"] input::placeholder {
     font-size: 0.98rem !important;
     font-weight: 500 !important;
     line-height: 1.2 !important;
@@ -277,7 +282,7 @@ button[title="Copy link to heading"] {
 }
 
 /* 복수 선택 후 생성되는 선택 태그(chip) 스타일 */
-[data-testid="stMultiSelect"] [data-baseweb="tag"] {
+body:has(.scout-search-page-marker) [data-testid="stMultiSelect"] [data-baseweb="tag"] {
     min-height: 1.9rem !important;
     border-radius: 999px !important;
     background: rgba(49, 224, 174, 0.12) !important;
@@ -285,7 +290,7 @@ button[title="Copy link to heading"] {
     color: #f5fbff !important;
 }
 
-[data-testid="stMultiSelect"] [data-baseweb="tag"] * {
+body:has(.scout-search-page-marker) [data-testid="stMultiSelect"] [data-baseweb="tag"] * {
     font-size: 0.90rem !important;
     font-weight: 600 !important;
     color: #f5fbff !important;
@@ -293,16 +298,16 @@ button[title="Copy link to heading"] {
 }
 
 /* 모든 드롭다운의 화살표 크기와 위치 통일 */
-[data-testid="stSelectbox"] div[data-baseweb="select"] svg,
-[data-testid="stMultiSelect"] div[data-baseweb="select"] svg {
+body:has(.scout-search-page-marker) [data-testid="stSelectbox"] div[data-baseweb="select"] svg,
+body:has(.scout-search-page-marker) [data-testid="stMultiSelect"] div[data-baseweb="select"] svg {
     width: 1rem !important;
     height: 1rem !important;
     color: #8fb0c3 !important;
     fill: #8fb0c3 !important;
 }
 
-[data-testid="stSelectbox"] div[data-baseweb="select"] [class*="indicatorContainer"],
-[data-testid="stMultiSelect"] div[data-baseweb="select"] [class*="indicatorContainer"] {
+body:has(.scout-search-page-marker) [data-testid="stSelectbox"] div[data-baseweb="select"] [class*="indicatorContainer"],
+body:has(.scout-search-page-marker) [data-testid="stMultiSelect"] div[data-baseweb="select"] [class*="indicatorContainer"] {
     min-height: 3.12rem !important;
     display: flex !important;
     align-items: center !important;
@@ -311,7 +316,7 @@ button[title="Copy link to heading"] {
 }
 
 /* 숫자 입력창과 +/- 버튼 스타일 */
-[data-testid="stNumberInput"] input {
+body:has(.scout-search-page-marker) [data-testid="stNumberInput"] input {
     min-height: 3.12rem !important;
     border-radius: 0.88rem !important;
     background: rgba(13, 40, 61, 0.94) !important;
@@ -322,23 +327,23 @@ button[title="Copy link to heading"] {
     font-size: 0.98rem !important;
 }
 
-[data-testid="stNumberInput"] button {
+body:has(.scout-search-page-marker) [data-testid="stNumberInput"] button {
     min-height: 3.12rem !important;
     background: rgba(10, 30, 48, 0.98) !important;
     border-color: rgba(76, 129, 164, 0.48) !important;
 }
 
 /* ---------- 나이/연봉 범위 슬라이더와 직접 입력 영역 ---------- */
-[data-testid="stSlider"] {
+body:has(.scout-search-page-marker) [data-testid="stSlider"] {
     padding-top: 0.10rem;
 }
 
-[data-testid="stSlider"] [data-baseweb="slider"] {
+body:has(.scout-search-page-marker) [data-testid="stSlider"] [data-baseweb="slider"] {
     padding-top: 0.20rem;
     padding-bottom: 0.05rem;
 }
 
-.range-divider {
+body:has(.scout-search-page-marker) .range-divider {
     height: 3.12rem;
     display: flex;
     align-items: center;
@@ -350,19 +355,19 @@ button[title="Copy link to heading"] {
 
 /* ---------- 임대 선수 포함 등 체크박스 카드 ---------- */
 /* 체크박스를 각 열 전체 너비로 사용해 3열 입력창과 정렬 */
-[data-testid="stCheckbox"],
-[data-testid="stCheckbox"] > div {
+body:has(.scout-search-page-marker) [data-testid="stCheckbox"],
+body:has(.scout-search-page-marker) [data-testid="stCheckbox"] > div {
     width: 100% !important;
     max-width: none !important;
     box-sizing: border-box !important;
 }
 
-[data-testid="stCheckbox"] {
+body:has(.scout-search-page-marker) [data-testid="stCheckbox"] {
     padding-top: 0 !important;
     margin: 0 !important;
 }
 
-[data-testid="stCheckbox"] label {
+body:has(.scout-search-page-marker) [data-testid="stCheckbox"] label {
     width: 100% !important;
     min-width: 100% !important;
     min-height: 3.12rem !important;
@@ -379,19 +384,19 @@ button[title="Copy link to heading"] {
     color: #edf6fb !important;
 }
 
-[data-testid="stCheckbox"] label p {
+body:has(.scout-search-page-marker) [data-testid="stCheckbox"] label p {
     margin: 0 !important;
     white-space: nowrap !important;
 }
 
-[data-testid="stCheckbox"] input[type="checkbox"] {
+body:has(.scout-search-page-marker) [data-testid="stCheckbox"] input[type="checkbox"] {
     width: 1.15rem !important;
     height: 1.15rem !important;
     flex: 0 0 1.15rem !important;
 }
 
 /* ---------- 오른쪽 선택 조건 미리보기 카드 ---------- */
-.summary-box {
+body:has(.scout-search-page-marker) .summary-box {
     border-radius: 1.18rem;
     border: 1px solid rgba(52, 205, 166, 0.50);
     background:
@@ -401,7 +406,7 @@ button[title="Copy link to heading"] {
     box-shadow: none;
 }
 
-.summary-box h4 {
+body:has(.scout-search-page-marker) .summary-box h4 {
     margin: 0 !important;
     color: #f5fbff !important;
     font-size: 1.52rem;
@@ -409,21 +414,21 @@ button[title="Copy link to heading"] {
     line-height: 1.20;
 }
 
-.summary-subtext {
+body:has(.scout-search-page-marker) .summary-subtext {
     margin: 0.24rem 0 0.90rem !important;
     color: rgba(209, 223, 234, 0.73) !important;
     font-size: 0.95rem;
     line-height: 1.50;
 }
 
-.summary-rows {
+body:has(.scout-search-page-marker) .summary-rows {
     border-radius: 0.98rem;
     border: 1px solid rgba(58, 110, 142, 0.28);
     background: rgba(5, 22, 35, 0.38);
     overflow: hidden;
 }
 
-.summary-row {
+body:has(.scout-search-page-marker) .summary-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -432,24 +437,24 @@ button[title="Copy link to heading"] {
     border-bottom: 1px solid rgba(58, 110, 142, 0.20);
 }
 
-.summary-row:last-child {
+body:has(.scout-search-page-marker) .summary-row:last-child {
     border-bottom: none;
 }
 
-.summary-row span {
+body:has(.scout-search-page-marker) .summary-row span {
     color: rgba(208, 222, 234, 0.72) !important;
     font-size: 0.95rem;
     font-weight: 660;
 }
 
-.summary-row b {
+body:has(.scout-search-page-marker) .summary-row b {
     color: #f5fbff !important;
     font-size: 1rem;
     font-weight: 840;
     text-align: right;
 }
 
-.summary-helper {
+body:has(.scout-search-page-marker) .summary-helper {
     margin-top: 0.90rem;
     text-align: center;
     color: rgba(208, 222, 234, 0.70) !important;
@@ -458,7 +463,7 @@ button[title="Copy link to heading"] {
 }
 
 /* ---------- 후보 탐색 시작 등 주요 실행 버튼 ---------- */
-div[data-testid="stButton"] > button[kind="primary"] {
+body:has(.scout-search-page-marker) div[data-testid="stButton"] > button[kind="primary"] {
     min-height: 3.75rem !important;
     border-radius: 0.96rem !important;
     border: none !important;
@@ -469,12 +474,12 @@ div[data-testid="stButton"] > button[kind="primary"] {
     box-shadow: 0 10px 24px rgba(29, 183, 166, 0.18) !important;
 }
 
-div[data-testid="stButton"] > button[kind="primary"]:hover {
+body:has(.scout-search-page-marker) div[data-testid="stButton"] > button[kind="primary"]:hover {
     background: #28e092 !important;
     filter: none;
 }
 
-.scout-mini-caption {
+body:has(.scout-search-page-marker) .scout-mini-caption {
     margin-top: 0.32rem;
     color: rgba(201, 217, 228, 0.66) !important;
     font-size: 0.89rem;
@@ -482,37 +487,37 @@ div[data-testid="stButton"] > button[kind="primary"]:hover {
 }
 
 @media (max-width: 1180px) {
-    .scout-intent-grid {
+    body:has(.scout-search-page-marker) .scout-intent-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
 @media (max-width: 700px) {
-    .scout-intent-grid {
+    body:has(.scout-search-page-marker) .scout-intent-grid {
         grid-template-columns: 1fr;
     }
 
-    .summary-row {
+    body:has(.scout-search-page-marker) .summary-row {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.25rem;
     }
 
-    .summary-row b {
+    body:has(.scout-search-page-marker) .summary-row b {
         text-align: left;
     }
 }
 
 /* Streamlit 체크박스 바깥 wrapper가 좁아지는 경우를 막는 보정 */
-[data-testid="stElementContainer"]:has([data-testid="stCheckbox"]) {
+body:has(.scout-search-page-marker) [data-testid="stElementContainer"]:has([data-testid="stCheckbox"]) {
     width: 100% !important;
     min-width: 0 !important;
 }
 
-[data-testid="stElementContainer"]:has([data-testid="stCheckbox"]) > div,
-[data-testid="stElementContainer"]:has([data-testid="stCheckbox"]) [data-testid="stCheckbox"],
-[data-testid="stElementContainer"]:has([data-testid="stCheckbox"]) [data-testid="stCheckbox"] > div,
-[data-testid="stElementContainer"]:has([data-testid="stCheckbox"]) [data-testid="stCheckbox"] label {
+body:has(.scout-search-page-marker) [data-testid="stElementContainer"]:has([data-testid="stCheckbox"]) > div,
+body:has(.scout-search-page-marker) [data-testid="stElementContainer"]:has([data-testid="stCheckbox"]) [data-testid="stCheckbox"],
+body:has(.scout-search-page-marker) [data-testid="stElementContainer"]:has([data-testid="stCheckbox"]) [data-testid="stCheckbox"] > div,
+body:has(.scout-search-page-marker) [data-testid="stElementContainer"]:has([data-testid="stCheckbox"]) [data-testid="stCheckbox"] label {
     width: 100% !important;
     max-width: none !important;
     box-sizing: border-box !important;
@@ -520,10 +525,15 @@ div[data-testid="stButton"] > button[kind="primary"]:hover {
 
 
 /* ---------- 포함 옵션 행의 세로 정렬 ----------*/
-.st-key-role_options_row [data-testid="stCheckbox"] {
+body:has(.scout-search-page-marker) .st-key-role_options_row [data-testid="stCheckbox"] {
     margin-top: 1.48rem !important;
 }
 
-.st-key-role_options_row [data-testid="stCheckbox"] label {
+body:has(.scout-search-page-marker) .st-key-role_options_row [data-testid="stCheckbox"] label {
     min-height: 3.12rem !important;
+}
+
+/* 오른쪽 미리보기 카드와 실행 버튼 사이 간격 */
+body:has(.scout-search-page-marker) .scout-summary-button-spacer {
+    height: 0.85rem;
 }
