@@ -174,24 +174,25 @@ def _render_button_filter(
 def _render_formation_controls(formations: list[str]) -> str:
     current_formation = st.session_state["coach_squad_formation"]
 
-    st.markdown(
-        "<div class='squad-control-label'>포메이션 선택</div>",
-        unsafe_allow_html=True,
-    )
+    with st.container(key="squad_formation_controls"):
+        st.markdown(
+            "<div class='squad-control-label'>포메이션 선택</div>",
+            unsafe_allow_html=True,
+        )
 
-    columns = st.columns(len(formations))
+        columns = st.columns(len(formations))
 
-    for index, formation in enumerate(formations):
-        selected = formation == current_formation
+        for index, formation in enumerate(formations):
+            selected = formation == current_formation
 
-        with columns[index]:
-            if st.button(
-                formation,
-                key=f"formation_btn_{formation}",
-                type="primary" if selected else "secondary",
-                use_container_width=True,
-            ):
-                _change_formation(formation)
+            with columns[index]:
+                if st.button(
+                    formation,
+                    key=f"formation_btn_{formation}",
+                    type="primary" if selected else "secondary",
+                    use_container_width=True,
+                ):
+                    _change_formation(formation)
 
     return st.session_state["coach_squad_formation"]
 
@@ -201,7 +202,7 @@ def _render_player_pool(
     lineup: dict,
 ) -> None:
     st.markdown(
-        "<div style='height: 1.1rem'></div>",
+        "<div class='squad-player-list-spacer'></div>",
         unsafe_allow_html=True,
     )
     st.markdown("#### 선수 목록")
@@ -220,7 +221,7 @@ def _render_player_pool(
 
     with clear_col:
         st.markdown(
-            "<div style='height: 1.75rem'></div>",
+            "<div class='squad-clear-button-spacer'></div>",
             unsafe_allow_html=True,
         )
         st.button(
@@ -264,7 +265,7 @@ def _render_player_pool(
 
     st.caption(f"{len(filtered)}명")
 
-    with st.container(height=560, border=True):
+    with st.container(height=560, border=True, key="coach_player_pool"):
         for _, row in filtered.iterrows():
             payload = _player_payload(row)
             salary_id = int(payload["salaryId"])
@@ -279,7 +280,7 @@ def _render_player_pool(
                 )
 
             with button_col:
-                st.markdown("<div style='height: .45rem'></div>", unsafe_allow_html=True)
+                st.markdown("<div class='squad-detail-button-spacer'></div>", unsafe_allow_html=True)
 
                 if st.button(
                     "상세",
@@ -290,7 +291,7 @@ def _render_player_pool(
                     st.rerun()
 
             st.markdown(
-                "<div style='height: 0.15rem'></div>",
+                "<div class='squad-player-row-spacer'></div>",
                 unsafe_allow_html=True,
             )
 
@@ -366,6 +367,7 @@ def _slot_player_dialog(
 
 
 def render() -> None:
+    st.markdown('<span class="coach-squad-page-marker" aria-hidden="true"></span>', unsafe_allow_html=True)
     st.session_state["current_page"] = "coach_squad"
 
     page_title(
@@ -390,27 +392,28 @@ def render() -> None:
         formation = _render_formation_controls(formations)
 
     with spacer_col:
-        st.markdown("<div style='height: 1px'></div>", unsafe_allow_html=True)
+        st.markdown("<div class='squad-column-spacer'></div>", unsafe_allow_html=True)
 
     with action_col:
-        st.markdown(
-            "<div class='squad-control-label'>라인업 액션</div>",
-            unsafe_allow_html=True,
-        )
+        with st.container(key="squad_action_controls"):
+            st.markdown(
+                "<div class='squad-control-label'>라인업 액션</div>",
+                unsafe_allow_html=True,
+            )
 
-        btn_col1, btn_col2 = st.columns(2)
+            btn_col1, btn_col2 = st.columns(2)
 
-        with btn_col1:
-            if st.button("AI 추천 라인업", use_container_width=True):
-                result = recommend_lineup_payload(players, formation)
-                st.session_state["coach_squad_lineup"] = result["lineup"]
-                st.rerun()
+            with btn_col1:
+                if st.button("AI 추천 라인업", use_container_width=True):
+                    result = recommend_lineup_payload(players, formation)
+                    st.session_state["coach_squad_lineup"] = result["lineup"]
+                    st.rerun()
 
-        with btn_col2:
-            if st.button("라인업 초기화", use_container_width=True):
-                st.session_state["coach_squad_lineup"] = {}
-                _clear_slot_query()
-                st.rerun()
+            with btn_col2:
+                if st.button("라인업 초기화", use_container_width=True):
+                    st.session_state["coach_squad_lineup"] = {}
+                    _clear_slot_query()
+                    st.rerun()
 
     st.markdown("<div class='squad-control-spacer'></div>", unsafe_allow_html=True)
 
@@ -432,7 +435,7 @@ def render() -> None:
 
     with pitch_col:
         st.markdown(
-            "<div style='height: 3.5rem'></div>",
+            "<div class='squad-pitch-spacer'></div>",
             unsafe_allow_html=True,
         )
 
