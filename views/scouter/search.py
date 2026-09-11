@@ -556,10 +556,6 @@ def _render_value_form(players) -> dict:
                 labels,
                 key="value_player_label",
             )
-            st.markdown(
-                '<div class="scout-mini-caption">Azure가 연결되어 있으면 Azure 데이터를 사용하고, 연결되지 않으면 프로젝트 내부 ONNX/PKL 모델을 사용합니다.</div>',
-                unsafe_allow_html=True,
-            )
 
     return {
         "search_type": "value",
