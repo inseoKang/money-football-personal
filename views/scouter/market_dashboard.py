@@ -18,12 +18,12 @@ def _rank_row(rank: int, row: dict) -> str:
     value = html.escape(str(row.get("value", "-")))
 
     return f"""
-    <div style="border:1px solid rgba(120,220,255,.14);background:rgba(255,255,255,.045);border-radius:14px;padding:.8rem .9rem;margin-bottom:.55rem;display:flex;justify-content:space-between;gap:.8rem;align-items:center;">
-      <div>
-        <div style="color:#f4fbff;font-weight:850;">{rank}. {name}</div>
-        <div style="color:#8fb0c3;font-size:.76rem;margin-top:.15rem;">{club} · {league} · {position}</div>
+    <div class="market-list-card">
+      <div class="market-list-main">
+        <div class="market-list-title">{rank}. {name}</div>
+        <div class="market-list-meta">{club} · {league} · {position}</div>
       </div>
-      <div style="color:#8fffd0;font-weight:950;font-size:1.05rem;white-space:nowrap;">{value}</div>
+      <div class="market-list-value">{value}</div>
     </div>
     """
 
@@ -41,12 +41,12 @@ def _summary_list_html(rows: list[dict], title_key: str) -> str:
         sub = f"{league} · " if league and title_key == "club" else ""
 
         result += f"""
-        <div style="border:1px solid rgba(120,220,255,.14);background:rgba(255,255,255,.045);border-radius:14px;padding:.8rem .9rem;margin-bottom:.55rem;display:flex;justify-content:space-between;gap:.8rem;align-items:center;">
-          <div>
-            <div style="color:#f4fbff;font-weight:850;">{title}</div>
-            <div style="color:#8fb0c3;font-size:.76rem;margin-top:.15rem;">{sub}{players}명 · 득점 {goals} · 도움 {assists}</div>
+        <div class="market-list-card">
+          <div class="market-list-main">
+            <div class="market-list-title">{title}</div>
+            <div class="market-list-meta">{sub}{players}명 · 득점 {goals} · 도움 {assists}</div>
           </div>
-          <div style="color:#8fffd0;font-weight:950;font-size:1.05rem;white-space:nowrap;">{avg_overall}</div>
+          <div class="market-list-value">{avg_overall}</div>
         </div>
         """
 
@@ -54,6 +54,7 @@ def _summary_list_html(rows: list[dict], title_key: str) -> str:
 
 
 def render() -> None:
+    st.markdown('<span class="scout-market-page-marker" aria-hidden="true"></span>', unsafe_allow_html=True)
     st.session_state.current_page = "scout_market_dashboard"
     st.session_state.user_mode = "scout"
 

@@ -1,1 +1,58 @@
-/* 이 페이지는 아직 일부 카드가 inline style을 사용합니다. */
+/* 페이지 식별용 마커는 레이아웃 공간을 차지하지 않도록 숨깁니다. */
+body:has(.scout-market-page-marker) [data-testid="stElementContainer"]:has(.scout-market-page-marker) {
+  display: none !important;
+}
+
+/* ============================================================
+   전체 선수 시장 대시보드 전용 스타일
+   - 랭킹 카드와 리그/클럽 요약 카드를 관리합니다.
+   ============================================================ */
+
+body:has(.scout-market-page-marker) .market-list-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.55rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid rgba(120, 220, 255, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+body:has(.scout-market-page-marker) .market-list-main {
+  min-width: 0;
+}
+
+body:has(.scout-market-page-marker) .market-list-title {
+  color: #f4fbff !important;
+  font-weight: 850;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body:has(.scout-market-page-marker) .market-list-meta {
+  margin-top: 0.15rem;
+  color: #8fb0c3 !important;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+body:has(.scout-market-page-marker) .market-list-value {
+  flex-shrink: 0;
+  color: #8fffd0 !important;
+  font-size: 1.05rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  body:has(.scout-market-page-marker) .market-list-card {
+    align-items: flex-start;
+  }
+
+  body:has(.scout-market-page-marker) .market-list-title {
+    white-space: normal;
+  }
+}
