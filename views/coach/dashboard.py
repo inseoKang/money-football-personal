@@ -66,7 +66,7 @@ def _position_distribution_html(rows: list[dict]) -> str:
 
         cards += dedent(
             f"""
-            <div class="position-card">
+            <div class="dashboard-position-card">
               <strong>{players}</strong>
               <span>{position}</span>
             </div>
@@ -77,7 +77,7 @@ def _position_distribution_html(rows: list[dict]) -> str:
         f"""
         <div class="dashboard-panel compact">
           <div class="dashboard-section-title">포지션 구성</div>
-          <div class="position-grid-2x2">
+          <div class="dashboard-position-grid">
             {cards}
           </div>
         </div>
@@ -103,7 +103,7 @@ def _position_score_html(rows: list[dict]) -> str:
             ("discipline", "규율"),
         ]:
             value = html.escape(str(row.get(key, 0)))
-            chips += f"<div class='score-chip'>{label} {value}</div>"
+            chips += f"<div class='dashboard-score-chip'>{label} {value}</div>"
 
         html_rows += dedent(
             f"""
@@ -115,7 +115,7 @@ def _position_score_html(rows: list[dict]) -> str:
                 </div>
                 <div class="score-count">{players}명</div>
               </div>
-              <div class="score-chip-row">{chips}</div>
+              <div class="dashboard-score-chip-row">{chips}</div>
             </div>
             """
         ).strip()
@@ -137,12 +137,12 @@ def _rank_row(rank: int, row: dict) -> str:
 
     return dedent(
         f"""
-        <div class="mini-rank-card">
+        <div class="dashboard-rank-card">
           <div>
-            <div class="mini-rank-name">{rank}. {name}</div>
-            <div class="mini-rank-meta">{position} · 종합 {overall}</div>
+            <div class="dashboard-rank-name">{rank}. {name}</div>
+            <div class="dashboard-rank-meta">{position} · 종합 {overall}</div>
           </div>
-          <div class="mini-rank-value">{value}</div>
+          <div class="dashboard-rank-value">{value}</div>
         </div>
         """
     ).strip()
@@ -152,7 +152,7 @@ def _top_players_list_html(top_players: dict, selected_key: str) -> str:
     rows = top_players.get(selected_key, [])
 
     if not rows:
-        return "<div class='mini-rank-meta'>표시할 선수가 없습니다.</div>"
+        return "<div class='dashboard-rank-meta'>표시할 선수가 없습니다.</div>"
 
     rank_rows = "".join(
         _rank_row(idx, row)
@@ -161,7 +161,7 @@ def _top_players_list_html(top_players: dict, selected_key: str) -> str:
 
     return dedent(
         f"""
-        <div class="ranking-list">
+        <div class="dashboard-ranking-list">
           {rank_rows}
         </div>
         """
@@ -191,7 +191,7 @@ def _top_players_panel_html(top_players: dict) -> str:
             + '</section>'
         )
     return (
-        '<div class="bottom-panel ranking-panel">'
+        '<div class="dashboard-bottom-panel ranking-panel">'
         '<div class="dashboard-section-title">바르셀로나 TOP 선수</div>'
         '<fieldset class="ranking-switcher">'
         '<legend class="ranking-visually-hidden">선수 랭킹 기준</legend>'
@@ -205,7 +205,7 @@ def _top_players_panel_html(top_players: dict) -> str:
 def _score_panel_html(position_scores: list[dict]) -> str:
     return dedent(
         f"""
-        <div class="bottom-panel">
+        <div class="dashboard-bottom-panel">
           <div class="dashboard-section-title score-title">포지션별 평균 능력치</div>
           {_position_score_html(position_scores)}
         </div>
@@ -214,6 +214,7 @@ def _score_panel_html(position_scores: list[dict]) -> str:
 
 
 def render() -> None:
+    st.markdown('<span class="coach-dashboard-page-marker" aria-hidden="true"></span>', unsafe_allow_html=True)
     st.session_state.current_page = "coach_dashboard"
     st.session_state.user_mode = "coach"
 
