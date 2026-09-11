@@ -6,6 +6,7 @@ import csv
 import io
 import json
 import math
+import pandas as pd
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -202,7 +203,10 @@ class SalaryValueService:
         if self._shap_explainer is None:
             self._shap_explainer = shap.TreeExplainer(model)
 
-        matrix = np.asarray([features], dtype=float)
+        matrix = pd.DataFrame(
+            [features],
+            columns=self.feature_columns,
+        )
         shap_values = self._shap_explainer.shap_values(matrix)
         values = shap_values[0] if getattr(shap_values, "ndim", 1) > 1 else shap_values
         base_value = self._shap_explainer.expected_value
