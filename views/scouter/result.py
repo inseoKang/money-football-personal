@@ -778,6 +778,7 @@ def _render_advanced_result(players: pd.DataFrame, conditions: dict) -> None:
 
 
 def render() -> None:
+    st.markdown('<span class="scout-result-page-marker" aria-hidden="true"></span>', unsafe_allow_html=True)
     st.session_state.current_page = "scout_result"
     st.session_state.user_mode = "scout"
 
