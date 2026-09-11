@@ -415,6 +415,7 @@ def _render_delta_panel(delta: dict) -> None:
 
 
 def render() -> None:
+    st.markdown('<span class="coach-vs-page-marker" aria-hidden="true"></span>', unsafe_allow_html=True)
     st.session_state.current_page = "coach_vs_squad"
     st.session_state.user_mode = "coach"
 
@@ -442,124 +443,134 @@ def render() -> None:
 
     formations = _available_formations()
 
-    st.markdown("<div class='vs-control-section'>", unsafe_allow_html=True)
-
-    left_control, center_control, right_control = st.columns(
-        [1.18, 0.34, 1.18],
-        gap="large",
-    )
-
-    with left_control:
-        st.markdown("<div class='vs-panel-title'>Barcelona 설정</div>", unsafe_allow_html=True)
-        st.markdown(
-            "<div class='vs-panel-desc'>우리 팀 포메이션을 고르고 추천 라인업을 생성합니다.</div>",
-            unsafe_allow_html=True,
+    with st.container(key="vs_control_section"):
+        left_control, center_control, right_control = st.columns(
+            [1.18, 0.34, 1.18],
+            gap="large",
         )
 
-        st.markdown("<div class='vs-select-spacer'></div>", unsafe_allow_html=True)
-
-        st.markdown("<div class='vs-formation-zone'>", unsafe_allow_html=True)
-
-        left_formation, left_formation_changed = _render_choice_buttons(
-            "우리 팀 포메이션",
-            formations,
-            "vs_left_formation",
-            "vs_left_formation_btn",
-            columns_per_row=len(formations),
-        )
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        if left_formation_changed:
-            st.session_state.vs_left_lineup = {}
-            _sync_query_state()
-            st.rerun()
-
-        st.markdown("<div class='vs-ai-button-zone'>", unsafe_allow_html=True)
-
-        if st.button("우리 팀 AI 추천 받기", type="primary", use_container_width=True, key="vs_left_ai_recommend"):
-            payload = recommend_lineup_payload(barcelona_players, st.session_state.vs_left_formation)
-            st.session_state.vs_left_lineup = payload["lineup"]
-            _sync_query_state()
-            st.rerun()
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with center_control:
-        st.markdown("<div class='vs-center-box'>", unsafe_allow_html=True)
-        st.markdown("<div class='vs-big-text'>VS</div>", unsafe_allow_html=True)
-
-        if st.button("VS 라인업 초기화", use_container_width=True, key="vs_reset_lineup"):
-            st.session_state.vs_left_lineup = {}
-            st.session_state.vs_right_lineup = {}
-            st.session_state.vs_right_payload_meta = {}
-            _sync_query_state()
-            st.rerun()
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with right_control:
-        st.markdown("<div class='vs-panel-title'>상대 팀 설정</div>", unsafe_allow_html=True)
-        st.markdown(
-            "<div class='vs-panel-desc'>상대 라리가 팀과 포메이션을 선택한 뒤 AI 추천을 생성합니다.</div>",
-            unsafe_allow_html=True,
-        )
-
-        previous_opponent_club = st.session_state.get("vs_opponent_club", opponent_clubs[0])
-
-        opponent_club = st.selectbox(
-            "상대 라리가 팀",
-            opponent_clubs,
-            index=opponent_clubs.index(previous_opponent_club) if previous_opponent_club in opponent_clubs else 0,
-            key="vs_opponent_club_select",
-            label_visibility="collapsed",
-        )
-
-        if opponent_club != st.session_state.get("vs_opponent_club"):
-            st.session_state.vs_opponent_club = opponent_club
-            st.session_state.vs_right_lineup = {}
-            st.session_state.vs_right_payload_meta = {}
-            st.rerun()
-
-        st.markdown("<div class='vs-opponent-formation-zone'>", unsafe_allow_html=True)
-
-        right_formation, right_formation_changed = _render_choice_buttons(
-            "상대 팀 포메이션",
-            formations,
-            "vs_right_formation",
-            "vs_right_formation_btn",
-            columns_per_row=len(formations),
-        )
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        if right_formation_changed:
-            st.session_state.vs_right_lineup = {}
-            st.session_state.vs_right_payload_meta = {}
-            st.rerun()
-
-        st.markdown("<div class='vs-ai-button-zone'>", unsafe_allow_html=True)
-
-        if st.button("상대 팀 AI 추천 받기", type="primary", use_container_width=True, key="vs_right_ai_recommend"):
-            opponent_players_for_recommend = _filter_by_club(laliga_players, opponent_club)
-
-            payload = recommend_lineup_payload(
-                opponent_players_for_recommend,
-                st.session_state.vs_right_formation,
+        with left_control:
+            st.markdown("<div class='vs-panel-title'>Barcelona 설정</div>", unsafe_allow_html=True)
+            st.markdown(
+                "<div class='vs-panel-desc'>우리 팀 포메이션을 고르고 추천 라인업을 생성합니다.</div>",
+                unsafe_allow_html=True,
             )
 
-            st.session_state.vs_right_lineup = payload["lineup"]
-            st.session_state.vs_right_payload_meta = {
-                "club": opponent_club,
-                "formation": st.session_state.vs_right_formation,
-            }
+            st.markdown("<div class='vs-select-spacer'></div>", unsafe_allow_html=True)
 
-            st.success(f"{opponent_club} AI 추천 라인업을 생성했습니다.")
-            st.rerun()
+            with st.container(key="vs_left_formation_zone"):
+                left_formation, left_formation_changed = _render_choice_buttons(
+                    "우리 팀 포메이션",
+                    formations,
+                    "vs_left_formation",
+                    "vs_left_formation_btn",
+                    columns_per_row=len(formations),
+                )
 
-        st.markdown("</div>", unsafe_allow_html=True)
+            if left_formation_changed:
+                st.session_state.vs_left_lineup = {}
+                _sync_query_state()
+                st.rerun()
 
-    st.markdown("</div>", unsafe_allow_html=True)
+            with st.container(key="vs_left_ai_button_zone"):
+                if st.button(
+                    "우리 팀 AI 추천 받기",
+                    type="primary",
+                    use_container_width=True,
+                    key="vs_left_ai_recommend",
+                ):
+                    payload = recommend_lineup_payload(
+                        barcelona_players,
+                        st.session_state.vs_left_formation,
+                    )
+                    st.session_state.vs_left_lineup = payload["lineup"]
+                    _sync_query_state()
+                    st.rerun()
+
+        with center_control:
+            with st.container(key="vs_center_box"):
+                st.markdown("<div class='vs-big-text'>VS</div>", unsafe_allow_html=True)
+
+                if st.button(
+                    "VS 라인업 초기화",
+                    use_container_width=True,
+                    key="vs_reset_lineup",
+                ):
+                    st.session_state.vs_left_lineup = {}
+                    st.session_state.vs_right_lineup = {}
+                    st.session_state.vs_right_payload_meta = {}
+                    _sync_query_state()
+                    st.rerun()
+
+        with right_control:
+            st.markdown("<div class='vs-panel-title'>상대 팀 설정</div>", unsafe_allow_html=True)
+            st.markdown(
+                "<div class='vs-panel-desc'>상대 라리가 팀과 포메이션을 선택한 뒤 AI 추천을 생성합니다.</div>",
+                unsafe_allow_html=True,
+            )
+
+            previous_opponent_club = st.session_state.get(
+                "vs_opponent_club",
+                opponent_clubs[0],
+            )
+
+            opponent_club = st.selectbox(
+                "상대 라리가 팀",
+                opponent_clubs,
+                index=(
+                    opponent_clubs.index(previous_opponent_club)
+                    if previous_opponent_club in opponent_clubs
+                    else 0
+                ),
+                key="vs_opponent_club_select",
+                label_visibility="collapsed",
+            )
+
+            if opponent_club != st.session_state.get("vs_opponent_club"):
+                st.session_state.vs_opponent_club = opponent_club
+                st.session_state.vs_right_lineup = {}
+                st.session_state.vs_right_payload_meta = {}
+                st.rerun()
+
+            with st.container(key="vs_right_formation_zone"):
+                right_formation, right_formation_changed = _render_choice_buttons(
+                    "상대 팀 포메이션",
+                    formations,
+                    "vs_right_formation",
+                    "vs_right_formation_btn",
+                    columns_per_row=len(formations),
+                )
+
+            if right_formation_changed:
+                st.session_state.vs_right_lineup = {}
+                st.session_state.vs_right_payload_meta = {}
+                st.rerun()
+
+            with st.container(key="vs_right_ai_button_zone"):
+                if st.button(
+                    "상대 팀 AI 추천 받기",
+                    type="primary",
+                    use_container_width=True,
+                    key="vs_right_ai_recommend",
+                ):
+                    opponent_players_for_recommend = _filter_by_club(
+                        laliga_players,
+                        opponent_club,
+                    )
+
+                    payload = recommend_lineup_payload(
+                        opponent_players_for_recommend,
+                        st.session_state.vs_right_formation,
+                    )
+
+                    st.session_state.vs_right_lineup = payload["lineup"]
+                    st.session_state.vs_right_payload_meta = {
+                        "club": opponent_club,
+                        "formation": st.session_state.vs_right_formation,
+                    }
+
+                    st.success(f"{opponent_club} AI 추천 라인업을 생성했습니다.")
+                    st.rerun()
 
     opponent_players = _filter_by_club(laliga_players, opponent_club)
 

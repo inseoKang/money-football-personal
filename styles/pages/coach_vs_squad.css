@@ -1,51 +1,57 @@
-.vs-control-section {
+/* 페이지 식별용 마커는 레이아웃 공간을 차지하지 않도록 숨깁니다. */
+body:has(.coach-vs-page-marker) [data-testid="stElementContainer"]:has(.coach-vs-page-marker) {
+  display: none !important;
+}
+
+body:has(.coach-vs-page-marker) .st-key-vs_control_section {
   margin-top: 1.1rem;
   margin-bottom: 1.35rem;
 }
 
-.vs-panel-title {
+body:has(.coach-vs-page-marker) .vs-panel-title {
   font-size: 1.08rem;
   font-weight: 900;
   color: #e8f6ff;
   margin-bottom: 0.25rem;
 }
 
-.vs-panel-desc {
+body:has(.coach-vs-page-marker) .vs-panel-desc {
   font-size: 0.78rem;
   color: #8fb0c3;
   margin-bottom: 0.55rem;
   min-height: 1.1rem;
 }
 
-.control-label {
+body:has(.coach-vs-page-marker) .control-label {
   color: #9bb8ca;
   font-size: 0.78rem;
   font-weight: 850;
   margin: 0.05rem 0 0.35rem 0;
 }
 
-.vs-select-spacer {
+body:has(.coach-vs-page-marker) .vs-select-spacer {
   height: 26px;
 }
 
-.vs-formation-zone {
+body:has(.coach-vs-page-marker) .st-key-vs_left_formation_zone {
   min-height: 48px;
 }
 
-.vs-opponent-formation-zone {
+body:has(.coach-vs-page-marker) .st-key-vs_right_formation_zone {
   margin-top: 0;
   min-height: 48px;
 }
 
-.vs-control-section [data-testid="stSelectbox"] {
+body:has(.coach-vs-page-marker) .st-key-vs_control_section [data-testid="stSelectbox"] {
   margin-bottom: 0rem;
 }
 
-.vs-ai-button-zone {
+body:has(.coach-vs-page-marker) .st-key-vs_left_ai_button_zone,
+body:has(.coach-vs-page-marker) .st-key-vs_right_ai_button_zone {
   margin-top: 0.8rem;
 }
 
-.vs-center-box {
+body:has(.coach-vs-page-marker) .st-key-vs_center_box {
   min-height: 170px;
   display: flex;
   flex-direction: column;
@@ -53,7 +59,7 @@
   padding-bottom: 0.15rem;
 }
 
-.vs-big-text {
+body:has(.coach-vs-page-marker) .vs-big-text {
   text-align: center;
   color: #2bd889;
   font-size: 2rem;
@@ -63,7 +69,7 @@
   margin-bottom: 0.65rem;
 }
 
-.delta-row {
+body:has(.coach-vs-page-marker) .delta-row {
   border: 1px solid rgba(120, 220, 255, 0.12);
   background: rgba(255, 255, 255, 0.045);
   border-radius: 14px;
@@ -74,30 +80,30 @@
   align-items: center;
 }
 
-.delta-label {
+body:has(.coach-vs-page-marker) .delta-label {
   color: #dff5ff;
   font-weight: 800;
 }
 
-.delta-value {
+body:has(.coach-vs-page-marker) .delta-value {
   font-weight: 950;
 }
 
-.positive {
+body:has(.coach-vs-page-marker) .delta-value.positive {
   color: #8fffd0;
 }
 
-.negative {
+body:has(.coach-vs-page-marker) .delta-value.negative {
   color: #fb7185;
 }
 
-.neutral {
+body:has(.coach-vs-page-marker) .delta-value.neutral {
   color: #dff5ff;
 }
 
 /* VS 기본 버튼 */
-.vs-control-section .stButton > button,
-.delta-row + div .stButton > button {
+body:has(.coach-vs-page-marker) .st-key-vs_control_section .stButton > button,
+body:has(.coach-vs-page-marker) .delta-row + div .stButton > button {
   border-radius: 12px;
   min-height: 2.35rem;
   font-weight: 850;
@@ -106,13 +112,13 @@
 }
 
 /* 상단 왼쪽/중앙/오른쪽 영역 사이 여백 */
-.vs-control-section > div[data-testid="stHorizontalBlock"] {
+body:has(.coach-vs-page-marker) .st-key-vs_control_section > div[data-testid="stHorizontalBlock"] {
   gap: 1.45rem;
 }
 
 /* 포메이션 버튼 padding 축소 */
-.vs-formation-zone .stButton > button,
-.vs-opponent-formation-zone .stButton > button {
+body:has(.coach-vs-page-marker) .st-key-vs_left_formation_zone .stButton > button,
+body:has(.coach-vs-page-marker) .st-key-vs_right_formation_zone .stButton > button {
   min-height: 2.2rem;
   padding-left: 0.18rem;
   padding-right: 0.18rem;
@@ -121,13 +127,13 @@
 }
 
 /* 포메이션 버튼끼리의 간격 축소 */
-.vs-formation-zone div[data-testid="stHorizontalBlock"],
-.vs-opponent-formation-zone div[data-testid="stHorizontalBlock"] {
+body:has(.coach-vs-page-marker) .st-key-vs_left_formation_zone div[data-testid="stHorizontalBlock"],
+body:has(.coach-vs-page-marker) .st-key-vs_right_formation_zone div[data-testid="stHorizontalBlock"] {
   gap: 0.32rem;
 }
 
 /* 중앙 VS 초기화 버튼 강조 */
-.vs-center-box .stButton > button {
+body:has(.coach-vs-page-marker) .st-key-vs_center_box .stButton > button {
   min-height: 2.45rem;
   padding-left: 0.55rem;
   padding-right: 0.55rem;
@@ -137,7 +143,8 @@
 }
 
 /* AI 추천 버튼은 넓고 안정적으로 유지 */
-.vs-ai-button-zone .stButton > button {
+body:has(.coach-vs-page-marker) .st-key-vs_left_ai_button_zone .stButton > button,
+body:has(.coach-vs-page-marker) .st-key-vs_right_ai_button_zone .stButton > button {
   min-height: 2.45rem;
   padding-left: 0.8rem;
   padding-right: 0.8rem;
